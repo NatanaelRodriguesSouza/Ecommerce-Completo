@@ -5,9 +5,9 @@ import jakarta.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb_marca_produto")
-@SequenceGenerator(name = "seq_marca_produto", sequenceName = "seq_marca_produto", allocationSize = 1, initialValue = 1)
-public class MarcaProduto {
+@Table(name = "tb_categoria_produto")
+@SequenceGenerator(name = "seq_categoria_produto", sequenceName = "seq_categoria_produto", allocationSize = 1, initialValue = 1)
+public class CategoriaProduto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_marca_produto")
@@ -15,7 +15,7 @@ public class MarcaProduto {
 
     private String nomeDesc;
 
-    public MarcaProduto() {
+    public CategoriaProduto() {
     }
 
     public Long getId() {
@@ -37,7 +37,7 @@ public class MarcaProduto {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        MarcaProduto that = (MarcaProduto) o;
+        CategoriaProduto that = (CategoriaProduto) o;
         return Objects.equals(id, that.id) && Objects.equals(nomeDesc, that.nomeDesc);
     }
 
