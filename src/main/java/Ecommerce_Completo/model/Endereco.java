@@ -1,5 +1,6 @@
 package Ecommerce_Completo.model;
 
+import Ecommerce_Completo.enums.TipoEndereco;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
@@ -42,6 +43,9 @@ public class Endereco implements Serializable {
     @JoinColumn(name = "pessoa_id", nullable = false, foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "pessoa_fk"))
     private Pessoa pessoa;
 
+    @Enumerated(EnumType.STRING)
+    private TipoEndereco tipoEndereco;
+
     public Long getId() {
         return id;
     }
@@ -52,6 +56,14 @@ public class Endereco implements Serializable {
 
     public String getRuaLogra() {
         return ruaLogra;
+    }
+
+    public TipoEndereco getTipoEndereco() {
+        return tipoEndereco;
+    }
+
+    public void setTipoEndereco(TipoEndereco tipoEndereco) {
+        this.tipoEndereco = tipoEndereco;
     }
 
     public void setRuaLogra(String ruaLogra) {
