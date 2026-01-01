@@ -10,7 +10,7 @@ import java.util.Objects;
 public class CategoriaProduto {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_marca_produto")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_categoria_produto")
     private Long id;
 
     private String nomeDesc;
