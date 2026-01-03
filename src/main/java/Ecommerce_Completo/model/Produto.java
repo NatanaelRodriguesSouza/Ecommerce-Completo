@@ -14,6 +14,9 @@ public class Produto {
     private Long id;
 
     @Column(nullable = false)
+    private Boolean ativo = Boolean.TRUE;
+
+    @Column(nullable = false)
     private String tipoUnidade;
 
     @Column(nullable = false)
