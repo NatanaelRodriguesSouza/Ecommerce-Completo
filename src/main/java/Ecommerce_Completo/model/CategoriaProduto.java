@@ -12,7 +12,7 @@ public class CategoriaProduto {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_categoria_produto")
     private Long id;
-
+    @Column(nullable = false)
     private String nomeDesc;
 
     public CategoriaProduto() {

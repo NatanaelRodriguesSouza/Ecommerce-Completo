@@ -19,7 +19,7 @@ public class ContaReceber implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_conta_Receber")
     private Long id;
-
+    @Column(nullable = false)
     private String descricao;
     @Enumerated(EnumType.STRING)
     private StatusContaReceber status;
@@ -27,6 +27,7 @@ public class ContaReceber implements Serializable {
     private Date dataVencimento;
     @Temporal(TemporalType.DATE)
     private Date dataPagamento;
+    @Column(nullable = false)
     private BigDecimal valorTotal;
     private BigDecimal ValorDesconto;
 

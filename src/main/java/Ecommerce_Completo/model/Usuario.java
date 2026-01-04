@@ -40,6 +40,11 @@ public class Usuario implements UserDetails {
                     foreignKey = @ForeignKey(name = "acesso_fk", value = ConstraintMode.CONSTRAINT)))
     private List<Acesso> acessos ;
 
+    @ManyToOne
+    @JoinColumn(name = "pessoa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
+    private Pessoa pessoa;
+
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.acessos;
@@ -55,5 +60,51 @@ public class Usuario implements UserDetails {
         return this.login;
     }
 
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+
+    public Date getDataAtualSenha() {
+        return dataAtualSenha;
+    }
+
+    public void setDataAtualSenha(Date dataAtualSenha) {
+        this.dataAtualSenha = dataAtualSenha;
+    }
+
+    public List<Acesso> getAcessos() {
+        return acessos;
+    }
+
+    public void setAcessos(List<Acesso> acessos) {
+        this.acessos = acessos;
+    }
+
+    public Pessoa getPessoa() {
+        return pessoa;
+    }
+
+    public void setPessoa(Pessoa pessoa) {
+        this.pessoa = pessoa;
+    }
 }
