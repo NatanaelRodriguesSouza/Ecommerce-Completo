@@ -20,6 +20,9 @@ public class StatusRastreio {
     private String estado;
 
     private String status;
+    @ManyToOne
+    @JoinColumn(name = "vendaCompraLojaVirtual_id" , nullable = false , foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "vendaCompraLojaVirtual_fk"))
+    private VendaCompraLojaVirtual vendaCompraLojaVirtual;
 
     public Long getId() {
         return id;

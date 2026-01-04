@@ -33,6 +33,9 @@ public class NotaFiscalVenda implements Serializable {
 	@Column(columnDefinition = "text", nullable = false)
 	private String pdf;
 
+    @OneToOne(mappedBy = "notaFiscalVenda")
+    private VendaCompraLojaVirtual vendaCompraLojaVirtual;
+
 	
 	public void setChave(String chave) {
 		this.chave = chave;
