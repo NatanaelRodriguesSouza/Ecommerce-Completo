@@ -1,7 +1,7 @@
 package Ecommerce_Completo.model;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Objects;
@@ -47,5 +47,9 @@ public class Acesso implements GrantedAuthority {
     @Override
     public @Nullable String getAuthority() {
         return this.descricao;
+    }
+
+    public String getDescricao() {
+        return descricao;
     }
 }
