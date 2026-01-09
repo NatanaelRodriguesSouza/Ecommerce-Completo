@@ -37,7 +37,7 @@ SET row_security = off;
 
 --
 -- TOC entry 1 (class 3079 OID 12355)
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
 --
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
@@ -46,7 +46,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 --
 -- TOC entry 2347 (class 0 OID 0)
 -- Dependencies: 1
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
@@ -65,9 +65,9 @@ CREATE FUNCTION validachavepessoa() RETURNS trigger
 
   declare existe integer;
 
-  begin
+  begin 
     existe = (select count(1) from pessoa_fisica where id = NEW.pessoa_id);
-    if(existe <=0 ) then
+    if(existe <=0 ) then 
      existe = (select count(1) from pessoa_juridica where id = NEW.pessoa_id);
     if (existe <= 0) then
       raise exception 'Não foi encontrado o ID ou PK da pessoa para realizar a associação';
@@ -91,9 +91,9 @@ CREATE FUNCTION validachavepessoa2() RETURNS trigger
 
   declare existe integer;
 
-  begin
+  begin 
     existe = (select count(1) from pessoa_fisica where id = NEW.pessoa_forn_id);
-    if(existe <=0 ) then
+    if(existe <=0 ) then 
      existe = (select count(1) from pessoa_juridica where id = NEW.pessoa_forn_id);
     if (existe <= 0) then
       raise exception 'Não foi encontrado o ID ou PK da pessoa para realizar a associação';
