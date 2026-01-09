@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb_statusRastreio")
+@Table(name = "statusRastreio")
 @SequenceGenerator(name = "seq_StatusRastreio" , sequenceName = "seq_StatusRastreio",allocationSize = 1,initialValue = 1)
 public class StatusRastreio {
 

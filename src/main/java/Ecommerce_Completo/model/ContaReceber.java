@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb_contaReceber")
+@Table(name = "contaReceber")
 @SequenceGenerator(name = "seq_conta_Receber", sequenceName = "seq_conta_Receber", allocationSize = 1, initialValue = 1)
 public class ContaReceber implements Serializable {
 

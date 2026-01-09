@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-@Table(name = "tb_vd_cp_loja_virt")
+@Table(name = "vd_cp_loja_virt")
 @SequenceGenerator(name = "seq_vd_cp_loja_virt", sequenceName = "seq_vd_cp_loja_virt", allocationSize = 1, initialValue = 1)
 public class VendaCompraLojaVirtual implements Serializable {
 

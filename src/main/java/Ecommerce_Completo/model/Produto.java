@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb_produto")
+@Table(name = "produto")
 @SequenceGenerator(name = "seq_Produto", sequenceName = "seq_Produto", initialValue = 1, allocationSize = 1)
 public class Produto {
     @Id

@@ -6,7 +6,7 @@ import javax.print.attribute.standard.MediaSize;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb_formaPagamento")
+@Table(name = "formaPagamento")
 @SequenceGenerator(sequenceName = "seq_formaPagamento" , name = "seq_formaPagamento", allocationSize = 1 , initialValue = 1)
 public class FormaPagamento {
     @Id

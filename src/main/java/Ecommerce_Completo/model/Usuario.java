@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 @Entity
-@Table(name = "tb_usuario")
+@Table(name = "usuario")
 @SequenceGenerator(name = "seq_usuario", sequenceName = "seq_usuario",allocationSize = 1,initialValue = 1)
 public class Usuario implements UserDetails {
 
@@ -28,7 +28,7 @@ public class Usuario implements UserDetails {
     private Date dataAtualSenha;
 
     @OneToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "tb_usuarios_acesso",
+    @JoinTable(name = "usuarios_acesso",
             uniqueConstraints = @UniqueConstraint (columnNames = {"usuario_id", "acesso_id"} ,
                     name = "unique_acesso_user"),
 

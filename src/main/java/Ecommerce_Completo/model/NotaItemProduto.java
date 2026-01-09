@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "tb_nota_item_produto")
+@Table(name = "nota_item_produto")
 @SequenceGenerator(name = "seq_nota_item_produto", sequenceName = "seq_nota_item_produto", allocationSize = 1, initialValue = 1)
 public class NotaItemProduto implements Serializable {
 

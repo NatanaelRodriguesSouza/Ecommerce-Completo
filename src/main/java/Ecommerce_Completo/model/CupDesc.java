@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb_cupDesc")
+@Table(name = "cupDesc")
 @SequenceGenerator(name = "seq_cupDesc" , sequenceName = "seq_cupDesc",allocationSize = 1,initialValue = 1)
 public class CupDesc {
 

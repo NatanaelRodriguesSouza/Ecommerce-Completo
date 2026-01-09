@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb_pessoa_fisica")
+@Table(name = "pessoa_fisica")
 public class PessoaFisica extends Pessoa{
 
     @Column(nullable = false)
