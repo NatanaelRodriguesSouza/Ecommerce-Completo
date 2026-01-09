@@ -9,11 +9,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -144,4 +150,57 @@ public class AcessoServiceTests {
 
         assertEquals("Acesso não encontrado", exception.getMessage());
     }
+
+    @Test
+    public void findByDescricaoShouldReturnAcessoDTOWhenDescricaoExists() {
+
+        when(repository.findByDescricao("ROLE_ADMIN"))
+                .thenReturn(Optional.of(acesso));
+
+        AcessoDTO result = service.findByDescricao("ROLE_ADMIN");
+
+        assertNotNull(result);
+        assertEquals(existingId, result.getId());
+        assertEquals("ROLE_ADMIN", result.getDescricao());
+
+        verify(repository).findByDescricao("ROLE_ADMIN");
+    }
+
+    @Test
+    public void findByDescricaoShouldThrowExceptionWhenDescricaoDoesNotExist() {
+
+        when(repository.findByDescricao("ROLE_INEXISTENTE"))
+                .thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> service.findByDescricao("ROLE_INEXISTENTE")
+        );
+
+        assertEquals("Acesso não encontrado", exception.getMessage());
+    }
+
+
+    @Test
+    void findPagedShouldReturnPage() {
+
+        Acesso acesso = new Acesso();
+        acesso.setDescricao("ROLE_ADMIN");
+
+        Page<Acesso> page = new PageImpl<>(
+                List.of(acesso),
+                PageRequest.of(0, 10),
+                1
+        );
+
+        Mockito.when(repository.findByDescricaoContainingIgnoreCase(
+                        Mockito.anyString(),
+                        Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        Page<AcessoDTO> result = service.findPaged("ROLE", PageRequest.of(0, 10));
+
+        assertThat(result.getContent()).hasSize(1);
+    }
+
 }

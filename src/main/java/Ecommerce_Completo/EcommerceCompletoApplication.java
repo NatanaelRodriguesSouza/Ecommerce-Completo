@@ -7,9 +7,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
-@ComponentScan(basePackages = "Ecommerce_Completo")
-@EnableJpaRepositories(basePackages = {"Ecommerce_Completo.repository"})
-@EnableTransactionManagement
 public class EcommerceCompletoApplication {
 
 	public static void main(String[] args) {
