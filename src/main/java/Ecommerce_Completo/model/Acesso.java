@@ -20,6 +20,11 @@ public class Acesso implements GrantedAuthority {
     public Acesso() {
     }
 
+    public Acesso(Long id, String descricao) {
+        this.id = id;
+        this.descricao = descricao;
+    }
+
     public Long getId() {
         return id;
     }

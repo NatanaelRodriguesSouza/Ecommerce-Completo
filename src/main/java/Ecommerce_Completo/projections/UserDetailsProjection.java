@@ -1,0 +1,8 @@
+package Ecommerce_Completo.projections;
+
+public interface UserDetailsProjection {
+    String getUsername();
+    String getPassword();
+    Long getRoleId();
+    String getAuthority();
+}

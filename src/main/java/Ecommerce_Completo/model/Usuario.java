@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -38,7 +39,7 @@ public class Usuario implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "acesso_id",
                     unique = false, referencedColumnName = "id", table = "acesso",
                     foreignKey = @ForeignKey(name = "acesso_fk", value = ConstraintMode.CONSTRAINT)))
-    private List<Acesso> acessos ;
+    private List<Acesso> acessos = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "pessoa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
@@ -63,6 +64,10 @@ public class Usuario implements UserDetails {
     @Override
     public boolean isAccountNonExpired() {
         return true;
+    }
+
+    public void addAcesso(Acesso acesso){
+        acessos.add(acesso);
     }
 
     @Override

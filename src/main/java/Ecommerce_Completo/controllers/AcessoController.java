@@ -28,6 +28,7 @@ public class AcessoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OPERATOR')")
     public ResponseEntity<List<AcessoDTO>> findAll() {
         return ResponseEntity.ok(service.findAll());
     }
