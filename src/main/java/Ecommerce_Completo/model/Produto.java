@@ -22,6 +22,10 @@ public class Produto {
     @Column(nullable = false)
     private String nome;
 
+    @ManyToOne
+    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
+    private Pessoa empresa;
+
     @Column(columnDefinition = "text", length = 2000, nullable = false)
     private String descricao;
 
@@ -57,6 +61,14 @@ public class Produto {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Pessoa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Pessoa empresa) {
+        this.empresa = empresa;
     }
 
     public String getTipoUnidade() {

@@ -48,6 +48,34 @@ public class ContaPagar implements Serializable {
     @JoinColumn(name = "formaPagamento_id" , nullable = false , foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pagamento_i"))
     private FormaPagamento pagamento;
 
+    @ManyToOne
+    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
+    private Pessoa empresa;
+
+    public Pessoa getPessoa_fornecedor() {
+        return pessoa_fornecedor;
+    }
+
+    public void setPessoa_fornecedor(Pessoa pessoa_fornecedor) {
+        this.pessoa_fornecedor = pessoa_fornecedor;
+    }
+
+    public FormaPagamento getPagamento() {
+        return pagamento;
+    }
+
+    public void setPagamento(FormaPagamento pagamento) {
+        this.pagamento = pagamento;
+    }
+
+    public Pessoa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Pessoa empresa) {
+        this.empresa = empresa;
+    }
+
     public Long getId() {
         return id;
     }

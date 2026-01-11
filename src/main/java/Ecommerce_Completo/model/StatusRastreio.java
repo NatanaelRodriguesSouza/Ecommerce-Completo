@@ -24,6 +24,18 @@ public class StatusRastreio {
     @JoinColumn(name = "vendaCompraLojaVirtual_id" , nullable = false , foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "vendaCompraLojaVirtual_fk"))
     private VendaCompraLojaVirtual vendaCompraLojaVirtual;
 
+    @ManyToOne
+    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
+    private Pessoa empresa;
+
+    public Pessoa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Pessoa empresa) {
+        this.empresa = empresa;
+    }
+
     public Long getId() {
         return id;
     }

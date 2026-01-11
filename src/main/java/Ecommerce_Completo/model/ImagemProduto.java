@@ -21,7 +21,6 @@ public class ImagemProduto implements Serializable {
 
 	@Column(columnDefinition = "text", nullable = false)
 	private String imagemMiniatura;
-
 	@JsonIgnoreProperties(allowGetters = true)
 	@ManyToOne
 	@JoinColumn(name = "produto_id", nullable = false,

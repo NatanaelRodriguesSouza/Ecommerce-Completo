@@ -25,6 +25,25 @@ public class CupDesc {
     @Temporal(TemporalType.DATE)
     private Date dataValidadeCupom;
 
+    @ManyToOne
+    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
+    private Pessoa empresa;
+
+    public Date getDataValidadeCupom() {
+        return dataValidadeCupom;
+    }
+
+    public void setDataValidadeCupom(Date dataValidadeCupom) {
+        this.dataValidadeCupom = dataValidadeCupom;
+    }
+
+    public Pessoa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Pessoa empresa) {
+        this.empresa = empresa;
+    }
 
     public Long getId() {
         return id;

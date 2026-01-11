@@ -41,6 +41,18 @@ public class NotaFiscalCompra {
     @JoinColumn(name = "contaPagar_id" , nullable = false , foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "contaPagar_fk"))
     private ContaPagar contaPagar;
 
+    @ManyToOne
+    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
+    private Pessoa empresa;
+
+    public Pessoa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Pessoa empresa) {
+        this.empresa = empresa;
+    }
+
     public Long getId() {
         return id;
     }

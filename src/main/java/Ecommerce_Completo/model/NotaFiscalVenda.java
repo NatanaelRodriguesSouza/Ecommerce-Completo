@@ -26,6 +26,10 @@ public class NotaFiscalVenda implements Serializable {
 
 	@Column(nullable = false)
 	private String chave;
+
+    @ManyToOne
+    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
+    private Pessoa empresa;
 	
 	@Column(columnDefinition = "text", nullable = false)
 	private String xml;
@@ -45,8 +49,15 @@ public class NotaFiscalVenda implements Serializable {
 		return chave;
 	}
 
+    public Pessoa getEmpresa() {
+        return empresa;
+    }
 
-	public Long getId() {
+    public void setEmpresa(Pessoa empresa) {
+        this.empresa = empresa;
+    }
+
+    public Long getId() {
 		return id;
 	}
 
