@@ -34,7 +34,7 @@ public abstract class Pessoa implements Serializable {
     private List<Endereco> enderecos = new ArrayList<Endereco>();
 
     @ManyToOne
-    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
+    @JoinColumn(name = "empresa_id" , nullable = true ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
     private Pessoa empresa;
 
     public Long getId() {

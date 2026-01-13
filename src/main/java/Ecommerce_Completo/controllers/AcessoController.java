@@ -1,14 +1,12 @@
 package Ecommerce_Completo.controllers;
 
-import Ecommerce_Completo.model.Acesso;
 import Ecommerce_Completo.model.DTO.AcessoDTO;
 import Ecommerce_Completo.service.AcessoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -18,13 +16,16 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/acesso")
 public class AcessoController {
-    @Autowired
-    private AcessoService service;
+
+    private final AcessoService service;
+
+    public AcessoController(AcessoService service) {
+        this.service = service;
+    }
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<AcessoDTO> findById(@PathVariable Long id) {
-        AcessoDTO dto = service.findById(id);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(service.findById(id));
     }
 
     @GetMapping
@@ -34,22 +35,22 @@ public class AcessoController {
     }
 
     @PostMapping
-    public ResponseEntity<AcessoDTO> insert( @RequestBody AcessoDTO dto) {
-        dto = service.insert(dto);
+    public ResponseEntity<AcessoDTO> insert(@Valid @RequestBody AcessoDTO dto) {
+        AcessoDTO created = service.insert(dto);
+
         URI uri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(dto.getId())
+                .buildAndExpand(created.getId())
                 .toUri();
-        return ResponseEntity.created(uri).body(dto);
+
+        return ResponseEntity.created(uri).body(created);
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<AcessoDTO> update(
-            @PathVariable Long id,
-            @RequestBody AcessoDTO dto) {
-        dto = service.update(id, dto);
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<AcessoDTO> update(@PathVariable Long id,
+                                            @Valid @RequestBody AcessoDTO dto) {
+        return ResponseEntity.ok(service.update(id, dto));
     }
 
     @DeleteMapping(value = "/{id}")
@@ -59,16 +60,13 @@ public class AcessoController {
     }
 
     @GetMapping(value = "/descricao")
-    public ResponseEntity<AcessoDTO> findByDescricao(
-            @RequestParam String descricao) {
-        AcessoDTO dto = service.findByDescricao(descricao);
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<AcessoDTO> findByDescricao(@RequestParam String descricao) {
+        return ResponseEntity.ok(service.findByDescricao(descricao));
     }
-    @GetMapping("/page")
-    public Page<AcessoDTO> findPaged(
-            @RequestParam(required = false) String descricao,
-            Pageable pageable) {
 
-        return service.findPaged(descricao, pageable);
+    @GetMapping("/page")
+    public ResponseEntity<Page<AcessoDTO>> findPaged(@RequestParam(required = false) String descricao,
+                                                     Pageable pageable) {
+        return ResponseEntity.ok(service.findPaged(descricao, pageable));
     }
 }
