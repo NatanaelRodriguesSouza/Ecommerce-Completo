@@ -12,49 +12,37 @@ public class MarcaProduto {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_marca_produto")
     private Long id;
-    @Column(nullable = false)
+
+    @Column(name = "nome_desc", nullable = false)
     private String nomeDesc;
 
-    @ManyToOne
-    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
-    private Pessoa empresa;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "empresa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "marca_produto_empresa_fk")
+    )
+    private PessoaJuridica empresa;
 
-    public Pessoa getEmpresa() {
-        return empresa;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setEmpresa(Pessoa empresa) {
-        this.empresa = empresa;
-    }
+    public String getNomeDesc() { return nomeDesc; }
+    public void setNomeDesc(String nomeDesc) { this.nomeDesc = nomeDesc; }
 
-    public MarcaProduto() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNomeDesc() {
-        return nomeDesc;
-    }
-
-    public void setNomeDesc(String nomeDesc) {
-        this.nomeDesc = nomeDesc;
-    }
+    public PessoaJuridica getEmpresa() { return empresa; }
+    public void setEmpresa(PessoaJuridica empresa) { this.empresa = empresa; }
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) return true;
+        if (!(o instanceof MarcaProduto)) return false;
         MarcaProduto that = (MarcaProduto) o;
-        return Objects.equals(id, that.id) && Objects.equals(nomeDesc, that.nomeDesc);
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, nomeDesc);
+        return getClass().hashCode();
     }
 }

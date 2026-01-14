@@ -8,12 +8,14 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "pessoa_fisica")
-public class PessoaFisica extends Pessoa{
+@PrimaryKeyJoinColumn(name = "id", foreignKey = @ForeignKey(name = "pf_pessoa_fk"))
+public class PessoaFisica extends Pessoa {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String cpf;
 
     @Temporal(TemporalType.DATE)
+    @Column(name = "data_nascimento")
     private Date dataNascimento;
 
     public String getCpf() {

@@ -18,7 +18,7 @@ public class Endereco implements Serializable {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_endereco")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "rua_logra", nullable = false)
     private String ruaLogra;
 
     @Column(nullable = false)
@@ -38,114 +38,71 @@ public class Endereco implements Serializable {
     @Column(nullable = false)
     private String cidade;
 
-    @ManyToOne(targetEntity = Pessoa.class)
-    @JoinColumn(name = "pessoa_id", nullable = false, foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "pessoa_fk"))
+    @JsonIgnore
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "pessoa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "endereco_pessoa_fk")
+    )
     private Pessoa pessoa;
 
-    @ManyToOne
-    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
-    private Pessoa empresa;
-
-    public Pessoa getEmpresa() {
-        return empresa;
-    }
-
-    public void setEmpresa(Pessoa empresa) {
-        this.empresa = empresa;
-    }
+    @JsonIgnore
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "empresa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "endereco_empresa_fk")
+    )
+    private PessoaJuridica empresa;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_endereco", nullable = false)
     private TipoEndereco tipoEndereco;
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getRuaLogra() { return ruaLogra; }
+    public void setRuaLogra(String ruaLogra) { this.ruaLogra = ruaLogra; }
 
-    public String getRuaLogra() {
-        return ruaLogra;
-    }
+    public String getCep() { return cep; }
+    public void setCep(String cep) { this.cep = cep; }
 
-    public TipoEndereco getTipoEndereco() {
-        return tipoEndereco;
-    }
+    public String getNumero() { return numero; }
+    public void setNumero(String numero) { this.numero = numero; }
 
-    public void setTipoEndereco(TipoEndereco tipoEndereco) {
-        this.tipoEndereco = tipoEndereco;
-    }
+    public String getComplemento() { return complemento; }
+    public void setComplemento(String complemento) { this.complemento = complemento; }
 
-    public void setRuaLogra(String ruaLogra) {
-        this.ruaLogra = ruaLogra;
-    }
+    public String getBairro() { return bairro; }
+    public void setBairro(String bairro) { this.bairro = bairro; }
 
-    public String getCep() {
-        return cep;
-    }
+    public String getUf() { return uf; }
+    public void setUf(String uf) { this.uf = uf; }
 
-    public void setCep(String cep) {
-        this.cep = cep;
-    }
+    public String getCidade() { return cidade; }
+    public void setCidade(String cidade) { this.cidade = cidade; }
 
-    public String getNumero() {
-        return numero;
-    }
+    public Pessoa getPessoa() { return pessoa; }
+    public void setPessoa(Pessoa pessoa) { this.pessoa = pessoa; }
 
-    public void setNumero(String numero) {
-        this.numero = numero;
-    }
+    public PessoaJuridica getEmpresa() { return empresa; }
+    public void setEmpresa(PessoaJuridica empresa) { this.empresa = empresa; }
 
-    public String getComplemento() {
-        return complemento;
-    }
-
-    public void setComplemento(String complemento) {
-        this.complemento = complemento;
-    }
-
-    public String getBairro() {
-        return bairro;
-    }
-
-    public void setBairro(String bairro) {
-        this.bairro = bairro;
-    }
-
-    public String getUf() {
-        return uf;
-    }
-
-    public void setUf(String uf) {
-        this.uf = uf;
-    }
-
-    public String getCidade() {
-        return cidade;
-    }
-
-    public void setCidade(String cidade) {
-        this.cidade = cidade;
-    }
-
-    public Pessoa getPessoa() {
-        return pessoa;
-    }
-
-    public void setPessoa(Pessoa pessoa) {
-        this.pessoa = pessoa;
-    }
+    public TipoEndereco getTipoEndereco() { return tipoEndereco; }
+    public void setTipoEndereco(TipoEndereco tipoEndereco) { this.tipoEndereco = tipoEndereco; }
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Endereco endereco = (Endereco) o;
-        return Objects.equals(id, endereco.id) && Objects.equals(ruaLogra, endereco.ruaLogra) && Objects.equals(cep, endereco.cep) && Objects.equals(numero, endereco.numero) && Objects.equals(complemento, endereco.complemento) && Objects.equals(bairro, endereco.bairro) && Objects.equals(uf, endereco.uf) && Objects.equals(cidade, endereco.cidade) && Objects.equals(pessoa, endereco.pessoa);
+        if (this == o) return true;
+        if (!(o instanceof Endereco)) return false;
+        Endereco that = (Endereco) o;
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, ruaLogra, cep, numero, complemento, bairro, uf, cidade, pessoa);
+        return getClass().hashCode();
     }
 }

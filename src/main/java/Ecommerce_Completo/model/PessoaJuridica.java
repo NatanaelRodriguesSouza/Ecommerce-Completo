@@ -1,26 +1,25 @@
 package Ecommerce_Completo.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.PrimaryKeyJoinColumn;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "pessoa_juridica")
-public class PessoaJuridica extends Pessoa{
+@PrimaryKeyJoinColumn(name = "id", foreignKey = @ForeignKey(name = "pj_pessoa_fk"))
+public class PessoaJuridica extends Pessoa {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String cnpj;
 
-    @Column(nullable = false)
+    @Column(name = "insc_estadual", nullable = false)
     private String inscEstadual;
 
+    @Column(name = "insc_municipal")
     private String inscMunicipal;
 
-    @Column(nullable = false)
+    @Column(name = "nome_fantasia", nullable = false)
     private String nomeFantasia;
 
-    @Column(nullable = false)
+    @Column(name = "razao_social", nullable = false)
     private String razaoSocial;
 
     private String categoria;
@@ -73,3 +72,4 @@ public class PessoaJuridica extends Pessoa{
         this.categoria = categoria;
     }
 }
+

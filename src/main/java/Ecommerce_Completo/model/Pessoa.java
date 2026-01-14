@@ -8,11 +8,10 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Table(name = "pessoa")
+@Inheritance(strategy = InheritanceType.JOINED)
 @SequenceGenerator(name = "seq_pessoa", sequenceName = "seq_pessoa", initialValue = 1, allocationSize = 1)
 public abstract class Pessoa implements Serializable {
-
-    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pessoa")
@@ -27,15 +26,15 @@ public abstract class Pessoa implements Serializable {
     @Column(nullable = false)
     private String telefone;
 
-    @Column
+    @Column(name = "tipo_pessoa", nullable = false)
     private String tipoPessoa;
 
-    @OneToMany(mappedBy = "pessoa", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Endereco> enderecos = new ArrayList<Endereco>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "empresa_id", foreignKey = @ForeignKey(name = "pessoa_empresa_fk"))
+    private PessoaJuridica empresa;
 
-    @ManyToOne
-    @JoinColumn(name = "empresa_id" , nullable = true ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
-    private Pessoa empresa;
+    @OneToMany(mappedBy = "pessoa", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Endereco> enderecos = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -43,30 +42,6 @@ public abstract class Pessoa implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getTipoPessoa() {
-        return tipoPessoa;
-    }
-
-    public Pessoa getEmpresa() {
-        return empresa;
-    }
-
-    public void setEmpresa(Pessoa empresa) {
-        this.empresa = empresa;
-    }
-
-    public void setTipoPessoa(String tipoPessoa) {
-        this.tipoPessoa = tipoPessoa;
-    }
-
-    public List<Endereco> getEnderecos() {
-        return enderecos;
-    }
-
-    public void setEnderecos(List<Endereco> enderecos) {
-        this.enderecos = enderecos;
     }
 
     public String getNome() {
@@ -93,15 +68,27 @@ public abstract class Pessoa implements Serializable {
         this.telefone = telefone;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Pessoa pessoa = (Pessoa) o;
-        return Objects.equals(id, pessoa.id);
+    public String getTipoPessoa() {
+        return tipoPessoa;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
+    public void setTipoPessoa(String tipoPessoa) {
+        this.tipoPessoa = tipoPessoa;
+    }
+
+    public PessoaJuridica getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(PessoaJuridica empresa) {
+        this.empresa = empresa;
+    }
+
+    public List<Endereco> getEnderecos() {
+        return enderecos;
+    }
+
+    public void setEnderecos(List<Endereco> enderecos) {
+        this.enderecos = enderecos;
     }
 }

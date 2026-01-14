@@ -3,6 +3,7 @@ package Ecommerce_Completo.model;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 @Entity
 @Table(name = "nota_item_produto")
@@ -18,88 +19,55 @@ public class NotaItemProduto implements Serializable {
     @Column(nullable = false)
     private Double quantidade;
 
-    @ManyToOne
-    @JoinColumn(name = "nota_fiscal_compra_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,
-                    name = "nota_fiscal_compra_fk"))
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "nota_fiscal_compra_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "nota_item_produto_nf_compra_fk")
+    )
     private NotaFiscalCompra notaFiscalCompra;
 
-    @ManyToOne
-    @JoinColumn(name = "produto_id", nullable = false, foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "produto_fk"))
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "produto_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "nota_item_produto_produto_fk")
+    )
     private Produto produto;
 
-
-    @ManyToOne(targetEntity = PessoaJuridica.class)
-    @JoinColumn(name = "empresa_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "empresa_id_fk"))
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "empresa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "nota_item_produto_empresa_fk")
+    )
     private PessoaJuridica empresa;
 
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
+    public Double getQuantidade() { return quantidade; }
+    public void setQuantidade(Double quantidade) { this.quantidade = quantidade; }
 
-    public PessoaJuridica getEmpresa() {
-        return empresa;
-    }
+    public NotaFiscalCompra getNotaFiscalCompra() { return notaFiscalCompra; }
+    public void setNotaFiscalCompra(NotaFiscalCompra notaFiscalCompra) { this.notaFiscalCompra = notaFiscalCompra; }
 
-    public void setEmpresa(PessoaJuridica empresa) {
-        this.empresa = empresa;
-    }
+    public Produto getProduto() { return produto; }
+    public void setProduto(Produto produto) { this.produto = produto; }
 
-    public Long getId() {
-        return id;
-    }
+    public PessoaJuridica getEmpresa() { return empresa; }
+    public void setEmpresa(PessoaJuridica empresa) { this.empresa = empresa; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Double getQuantidade() {
-        return quantidade;
-    }
-
-    public void setQuantidade(Double quantidade) {
-        this.quantidade = quantidade;
-    }
-
-    public NotaFiscalCompra getNotaFiscalCompra() {
-        return notaFiscalCompra;
-    }
-
-    public void setNotaFiscalCompra(NotaFiscalCompra notaFiscalCompra) {
-        this.notaFiscalCompra = notaFiscalCompra;
-    }
-
-    public Produto getProduto() {
-        return produto;
-    }
-
-    public void setProduto(Produto produto) {
-        this.produto = produto;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof NotaItemProduto)) return false;
+        NotaItemProduto that = (NotaItemProduto) o;
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        return result;
+        return getClass().hashCode();
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        NotaItemProduto other = (NotaItemProduto) obj;
-        if (id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!id.equals(other.id))
-            return false;
-        return true;
-    }
-
 }
-

@@ -5,86 +5,76 @@ import jakarta.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "statusRastreio")
-@SequenceGenerator(name = "seq_StatusRastreio" , sequenceName = "seq_StatusRastreio",allocationSize = 1,initialValue = 1)
+@Table(name = "status_rastreio")
+@SequenceGenerator(
+        name = "seq_status_rastreio",
+        sequenceName = "seq_status_rastreio",
+        allocationSize = 1,
+        initialValue = 1
+)
 public class StatusRastreio {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_StatusRastreio")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_status_rastreio")
     private Long id;
 
+    @Column(name = "centro_distribuicao")
     private String centroDeDestibuicao;
 
     private String cidade;
 
+    @Column(name = "estado")
     private String estado;
 
     private String status;
-    @ManyToOne
-    @JoinColumn(name = "vendaCompraLojaVirtual_id" , nullable = false , foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "vendaCompraLojaVirtual_fk"))
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "venda_compra_loja_virt_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "status_rastreio_venda_fk")
+    )
     private VendaCompraLojaVirtual vendaCompraLojaVirtual;
 
-    @ManyToOne
-    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
-    private Pessoa empresa;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "empresa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "status_rastreio_empresa_fk")
+    )
+    private PessoaJuridica empresa;
 
-    public Pessoa getEmpresa() {
-        return empresa;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setEmpresa(Pessoa empresa) {
-        this.empresa = empresa;
-    }
+    public String getCentroDeDestibuicao() { return centroDeDestibuicao; }
+    public void setCentroDeDestibuicao(String centroDeDestibuicao) { this.centroDeDestibuicao = centroDeDestibuicao; }
 
-    public Long getId() {
-        return id;
-    }
+    public String getCidade() { return cidade; }
+    public void setCidade(String cidade) { this.cidade = cidade; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 
-    public String getCentroDeDestibuicao() {
-        return centroDeDestibuicao;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public void setCentroDeDestibuicao(String centroDeDestibuicao) {
-        this.centroDeDestibuicao = centroDeDestibuicao;
-    }
+    public VendaCompraLojaVirtual getVendaCompraLojaVirtual() { return vendaCompraLojaVirtual; }
+    public void setVendaCompraLojaVirtual(VendaCompraLojaVirtual vendaCompraLojaVirtual) { this.vendaCompraLojaVirtual = vendaCompraLojaVirtual; }
 
-    public String getCidade() {
-        return cidade;
-    }
-
-    public void setCidade(String cidade) {
-        this.cidade = cidade;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    public PessoaJuridica getEmpresa() { return empresa; }
+    public void setEmpresa(PessoaJuridica empresa) { this.empresa = empresa; }
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) return true;
+        if (!(o instanceof StatusRastreio)) return false;
         StatusRastreio that = (StatusRastreio) o;
-        return Objects.equals(id, that.id) && Objects.equals(centroDeDestibuicao, that.centroDeDestibuicao) && Objects.equals(cidade, that.cidade) && Objects.equals(estado, that.estado) && Objects.equals(status, that.status);
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, centroDeDestibuicao, cidade, estado, status);
+        return getClass().hashCode();
     }
 }

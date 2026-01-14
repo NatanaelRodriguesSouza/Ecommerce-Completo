@@ -1,7 +1,6 @@
 package Ecommerce_Completo.model;
 
 import Ecommerce_Completo.enums.StatusContaReceber;
-import Ecommerce_Completo.enums.TipoEndereco;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -10,117 +9,95 @@ import java.util.Date;
 import java.util.Objects;
 
 @Entity
-@Table(name = "contaReceber")
-@SequenceGenerator(name = "seq_conta_Receber", sequenceName = "seq_conta_Receber", allocationSize = 1, initialValue = 1)
+@Table(name = "conta_receber")
+@SequenceGenerator(
+        name = "seq_conta_receber",
+        sequenceName = "seq_conta_receber",
+        allocationSize = 1,
+        initialValue = 1
+)
 public class ContaReceber implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_conta_Receber")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_conta_receber")
     private Long id;
+
     @Column(nullable = false)
     private String descricao;
-    @Enumerated(EnumType.STRING)
-    private StatusContaReceber status;
-    @Temporal(TemporalType.DATE)
-    private Date dataVencimento;
-    @Temporal(TemporalType.DATE)
-    private Date dataPagamento;
-    @Column(nullable = false)
-    private BigDecimal valorTotal;
-    private BigDecimal ValorDesconto;
 
-    @ManyToOne
-    @JoinColumn(name = "pessoa_id" , nullable = false , foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusContaReceber status;
+
+    @Temporal(TemporalType.DATE)
+    @Column(name = "data_vencimento", nullable = false)
+    private Date dataVencimento;
+
+    @Temporal(TemporalType.DATE)
+    @Column(name = "data_pagamento")
+    private Date dataPagamento;
+
+    @Column(name = "valor_total", nullable = false, precision = 19, scale = 2)
+    private BigDecimal valorTotal;
+
+    @Column(name = "valor_desconto", precision = 19, scale = 2)
+    private BigDecimal valorDesconto;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "pessoa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "conta_receber_pessoa_fk")
+    )
     private Pessoa pessoa;
 
-    public Long getId() {
-        return id;
-    }
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "empresa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "conta_receber_empresa_fk")
+    )
+    private PessoaJuridica empresa;
 
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    @ManyToOne
-    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
-    private Pessoa empresa;
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
 
-    public Pessoa getEmpresa() {
-        return empresa;
-    }
+    public StatusContaReceber getStatus() { return status; }
+    public void setStatus(StatusContaReceber status) { this.status = status; }
 
-    public void setEmpresa(Pessoa empresa) {
-        this.empresa = empresa;
-    }
+    public Date getDataVencimento() { return dataVencimento; }
+    public void setDataVencimento(Date dataVencimento) { this.dataVencimento = dataVencimento; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Date getDataPagamento() { return dataPagamento; }
+    public void setDataPagamento(Date dataPagamento) { this.dataPagamento = dataPagamento; }
 
-    public String getDescricao() {
-        return descricao;
-    }
+    public BigDecimal getValorTotal() { return valorTotal; }
+    public void setValorTotal(BigDecimal valorTotal) { this.valorTotal = valorTotal; }
 
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
+    public BigDecimal getValorDesconto() { return valorDesconto; }
+    public void setValorDesconto(BigDecimal valorDesconto) { this.valorDesconto = valorDesconto; }
 
-    public StatusContaReceber getStatus() {
-        return status;
-    }
+    public Pessoa getPessoa() { return pessoa; }
+    public void setPessoa(Pessoa pessoa) { this.pessoa = pessoa; }
 
-    public void setStatus(StatusContaReceber status) {
-        this.status = status;
-    }
-
-    public Date getDataVencimento() {
-        return dataVencimento;
-    }
-
-    public void setDataVencimento(Date dataVencimento) {
-        this.dataVencimento = dataVencimento;
-    }
-
-    public Date getDataPagamento() {
-        return dataPagamento;
-    }
-
-    public void setDataPagamento(Date dataPagamento) {
-        this.dataPagamento = dataPagamento;
-    }
-
-    public BigDecimal getValorTotal() {
-        return valorTotal;
-    }
-
-    public void setValorTotal(BigDecimal valorTotal) {
-        this.valorTotal = valorTotal;
-    }
-
-    public BigDecimal getValorDesconto() {
-        return ValorDesconto;
-    }
-
-    public void setValorDesconto(BigDecimal valorDesconto) {
-        ValorDesconto = valorDesconto;
-    }
-
-    public Pessoa getPessoa() {
-        return pessoa;
-    }
-
-    public void setPessoa(Pessoa pessoa) {
-        this.pessoa = pessoa;
-    }
+    public PessoaJuridica getEmpresa() { return empresa; }
+    public void setEmpresa(PessoaJuridica empresa) { this.empresa = empresa; }
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) return true;
+        if (!(o instanceof ContaReceber)) return false;
         ContaReceber that = (ContaReceber) o;
-        return Objects.equals(id, that.id);
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return getClass().hashCode();
     }
 }

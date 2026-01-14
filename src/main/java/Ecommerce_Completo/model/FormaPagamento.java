@@ -2,56 +2,52 @@ package Ecommerce_Completo.model;
 
 import jakarta.persistence.*;
 
-import javax.print.attribute.standard.MediaSize;
 import java.util.Objects;
 
 @Entity
-@Table(name = "formaPagamento")
-@SequenceGenerator(sequenceName = "seq_formaPagamento" , name = "seq_formaPagamento", allocationSize = 1 , initialValue = 1)
+@Table(name = "forma_pagamento")
+@SequenceGenerator(
+        name = "seq_forma_pagamento",
+        sequenceName = "seq_forma_pagamento",
+        allocationSize = 1,
+        initialValue = 1
+)
 public class FormaPagamento {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE , generator = "seq_formaPagamento")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_forma_pagamento")
     private Long id;
-    @Column(nullable = false)
+
+    @Column(name = "discricao", nullable = false)
     private String discricao;
 
-    @ManyToOne
-    @JoinColumn(name = "empresa_id" , nullable = false ,foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT,name = "pessoa_fk"))
-    private Pessoa empresa;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "empresa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "forma_pagamento_empresa_fk")
+    )
+    private PessoaJuridica empresa;
 
-    public Pessoa getEmpresa() {
-        return empresa;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setEmpresa(Pessoa empresa) {
-        this.empresa = empresa;
-    }
+    public String getDiscricao() { return discricao; }
+    public void setDiscricao(String discricao) { this.discricao = discricao; }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getDiscricao() {
-        return discricao;
-    }
-
-    public void setDiscricao(String discricao) {
-        this.discricao = discricao;
-    }
+    public PessoaJuridica getEmpresa() { return empresa; }
+    public void setEmpresa(PessoaJuridica empresa) { this.empresa = empresa; }
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) return true;
+        if (!(o instanceof FormaPagamento)) return false;
         FormaPagamento that = (FormaPagamento) o;
-        return Objects.equals(id, that.id) && Objects.equals(discricao, that.discricao);
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, discricao);
+        return getClass().hashCode();
     }
 }
