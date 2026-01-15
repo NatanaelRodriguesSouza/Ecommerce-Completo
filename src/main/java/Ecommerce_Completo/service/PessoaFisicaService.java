@@ -23,14 +23,16 @@ public class PessoaFisicaService {
 
     public PessoaFisicaService(PessoaFisicaRepository repository,
                                PessoaJuridicaRepository pessoaJuridicaRepository) {
-        this.repository = repository;
-        this.pessoaJuridicaRepository = pessoaJuridicaRepository;
+        this.repository = Objects.requireNonNull(repository, "PessoaFisicaRepository não pode ser nulo.");
+        this.pessoaJuridicaRepository = Objects.requireNonNull(pessoaJuridicaRepository, "PessoaJuridicaRepository não pode ser nulo.");
     }
 
     @Transactional
     public PessoaFisicaDTO insert(PessoaFisicaDTO dto) {
         Objects.requireNonNull(dto, "DTO não pode ser nulo.");
-        validateCpfUnique(dto.getCpf(), null);
+
+        final String cpf = requireNotBlank(dto.getCpf(), "CPF não pode ser vazio.");
+        validateCpfUniqueForInsert(cpf);
 
         PessoaFisica entity = new PessoaFisica();
         fillEntity(entity, dto);
@@ -39,18 +41,21 @@ public class PessoaFisicaService {
         return toDTO(entity);
     }
 
-
     @Transactional
     public PessoaFisicaDTO update(PessoaFisicaDTO dto) {
         Objects.requireNonNull(dto, "DTO não pode ser nulo.");
-        if (dto.getId() == null) {
+
+        final Long id = dto.getId();
+        if (id == null) {
             throw new IllegalArgumentException("ID é obrigatório para atualização.");
         }
 
-        PessoaFisica entity = repository.findById(dto.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Pessoa Física não encontrada. ID: " + dto.getId()));
+        PessoaFisica entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Pessoa Física não encontrada. ID: " + id));
 
-        validateCpfUnique(dto.getCpf(), dto.getId());
+        final String cpf = requireNotBlank(dto.getCpf(), "CPF não pode ser vazio.");
+        validateCpfUniqueForUpdate(cpf, id);
+
         fillEntity(entity, dto);
 
         entity = repository.save(entity);
@@ -58,7 +63,7 @@ public class PessoaFisicaService {
     }
 
     @Transactional(readOnly = true)
-    public PessoaFisicaDTO findByID(Long id) {
+    public PessoaFisicaDTO findById(Long id) {
         if (id == null) throw new IllegalArgumentException("ID não pode ser nulo.");
 
         PessoaFisica entity = repository.findById(id)
@@ -77,11 +82,9 @@ public class PessoaFisicaService {
 
     @Transactional(readOnly = true)
     public List<PessoaFisicaDTO> findByName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Nome não pode ser vazio.");
-        }
+        final String term = requireNotBlank(name, "Nome não pode ser vazio.").trim();
 
-        return repository.findByName(name.toUpperCase())
+        return repository.findByName(term)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -89,12 +92,10 @@ public class PessoaFisicaService {
 
     @Transactional(readOnly = true)
     public PessoaFisicaDTO findByCpf(String cpf) {
-        if (cpf == null || cpf.isBlank()) {
-            throw new IllegalArgumentException("CPF não pode ser vazio.");
-        }
+        final String value = requireNotBlank(cpf, "CPF não pode ser vazio.");
 
-        PessoaFisica entity = repository.findByCpf(cpf)
-                .orElseThrow(() -> new EntityNotFoundException("CPF não encontrado: " + cpf));
+        PessoaFisica entity = repository.findByCpf(value)
+                .orElseThrow(() -> new EntityNotFoundException("CPF não encontrado: " + value));
 
         return toDTO(entity);
     }
@@ -118,23 +119,36 @@ public class PessoaFisicaService {
         repository.delete(entity);
     }
 
-    private void validateCpfUnique(String cpf, Long currentId) {
-        if (cpf == null || cpf.isBlank()) {
-            throw new IllegalArgumentException("CPF não pode ser vazio.");
-        }
 
+    private void validateCpfUniqueForInsert(String cpf) {
+        if (repository.existsByCpf(cpf)) {
+            throw new IllegalArgumentException("CPF já cadastrado: " + cpf);
+        }
+    }
+
+    private void validateCpfUniqueForUpdate(String cpf, Long currentId) {
         repository.findByCpf(cpf)
-                .filter(found -> currentId == null || !found.getId().equals(currentId))
-                .ifPresent(found -> { throw new IllegalArgumentException("CPF já cadastrado: " + cpf); });
+                .filter(found -> !found.getId().equals(currentId))
+                .ifPresent(found -> {
+                    throw new IllegalArgumentException("CPF já cadastrado: " + cpf);
+                });
+    }
+
+    private String requireNotBlank(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
+        return value;
     }
 
     private void fillEntity(PessoaFisica entity, PessoaFisicaDTO dto) {
-        entity.setNome(dto.getNome());
-        entity.setEmail(dto.getEmail());
-        entity.setTelefone(dto.getTelefone());
-        entity.setCpf(dto.getCpf());
-        entity.setDataNascimento(dto.getDataNascimento());
+        entity.setNome(requireNotBlank(dto.getNome(), "Nome é obrigatório."));
+        entity.setEmail(requireNotBlank(dto.getEmail(), "Email é obrigatório."));
+        entity.setTelefone(requireNotBlank(dto.getTelefone(), "Telefone é obrigatório."));
         entity.setTipoPessoa("FISICA");
+
+        entity.setCpf(requireNotBlank(dto.getCpf(), "CPF é obrigatório."));
+        entity.setDataNascimento(dto.getDataNascimento());
 
         if (dto.getEmpresaId() != null) {
             PessoaJuridica empresa = pessoaJuridicaRepository.findById(dto.getEmpresaId())

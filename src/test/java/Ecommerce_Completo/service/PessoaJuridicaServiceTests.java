@@ -43,6 +43,8 @@ class PessoaJuridicaServiceTests {
         entity.setTelefone("9999");
         entity.setCnpj("12345678000100");
         entity.setRazaoSocial("Empresa LTDA");
+        entity.setNomeFantasia("Empresa");
+        entity.setInscEstadual("ISENTO");
         entity.setTipoPessoa("JURIDICA");
 
         dto = new PessoaJuridicaDTO();
@@ -50,16 +52,16 @@ class PessoaJuridicaServiceTests {
         dto.setNome("Empresa");
         dto.setEmail("empresa@email.com");
         dto.setTelefone("9999");
-        dto.setCnpj("12345678000100");
+        dto.setCnpj("12.345.678/0001-00"); // com máscara pra validar normalização
         dto.setRazaoSocial("Empresa LTDA");
         dto.setNomeFantasia("Empresa");
+        dto.setInscEstadual("ISENTO");
         dto.setCategoria("SERVICOS");
     }
 
-
     @Test
     void insert_shouldSaveAndReturnDTO_whenCnpjIsUnique() {
-        when(repository.findByCnpj(dto.getCnpj())).thenReturn(Optional.empty());
+        when(repository.existsByCnpj("12345678000100")).thenReturn(false);
         when(repository.save(any(PessoaJuridica.class))).thenAnswer(inv -> {
             PessoaJuridica saved = inv.getArgument(0);
             saved.setId(1L);
@@ -69,7 +71,8 @@ class PessoaJuridicaServiceTests {
         PessoaJuridicaDTO result = service.insert(dto);
 
         assertNotNull(result);
-        assertEquals(dto.getCnpj(), result.getCnpj());
+        assertEquals("12345678000100", result.getCnpj()); // normalizado
+        verify(repository).existsByCnpj("12345678000100");
         verify(repository).save(any(PessoaJuridica.class));
     }
 
@@ -79,6 +82,7 @@ class PessoaJuridicaServiceTests {
                 () -> service.insert(null));
 
         assertEquals("DTO não pode ser nulo.", ex.getMessage());
+        verifyNoInteractions(repository);
     }
 
     @Test
@@ -94,29 +98,27 @@ class PessoaJuridicaServiceTests {
 
     @Test
     void insert_shouldThrowIllegalArgumentException_whenCnpjAlreadyExists() {
-        PessoaJuridica existing = new PessoaJuridica();
-        existing.setId(99L);
-        existing.setCnpj(dto.getCnpj());
-
-        when(repository.findByCnpj(dto.getCnpj())).thenReturn(Optional.of(existing));
+        when(repository.existsByCnpj("12345678000100")).thenReturn(true);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.insert(dto));
 
-        assertEquals("CNPJ já cadastrado: " + dto.getCnpj(), ex.getMessage());
+        assertEquals("CNPJ já cadastrado: 12345678000100", ex.getMessage());
+        verify(repository).existsByCnpj("12345678000100");
         verify(repository, never()).save(any());
     }
 
     @Test
     void update_shouldUpdateAndReturnDTO_whenOk() {
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
-        when(repository.findByCnpj(dto.getCnpj())).thenReturn(Optional.of(entity)); // mesmo id, ok
+        when(repository.findByCnpj("12345678000100")).thenReturn(Optional.of(entity)); // mesmo id, ok
         when(repository.save(any(PessoaJuridica.class))).thenAnswer(inv -> inv.getArgument(0));
 
         PessoaJuridicaDTO result = service.update(dto);
 
         assertNotNull(result);
         assertEquals(1L, result.getId());
+        assertEquals("12345678000100", result.getCnpj()); // normalizado
         verify(repository).save(any(PessoaJuridica.class));
     }
 
@@ -152,18 +154,17 @@ class PessoaJuridicaServiceTests {
     void update_shouldThrowIllegalArgumentException_whenCnpjBelongsToAnother() {
         PessoaJuridica other = new PessoaJuridica();
         other.setId(99L);
-        other.setCnpj(dto.getCnpj());
+        other.setCnpj("12345678000100");
 
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
-        when(repository.findByCnpj(dto.getCnpj())).thenReturn(Optional.of(other));
+        when(repository.findByCnpj("12345678000100")).thenReturn(Optional.of(other));
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.update(dto));
 
-        assertEquals("CNPJ já cadastrado: " + dto.getCnpj(), ex.getMessage());
+        assertEquals("CNPJ já cadastrado: 12345678000100", ex.getMessage());
         verify(repository, never()).save(any());
     }
-
 
     @Test
     void findById_shouldReturnDTO_whenFound() {
@@ -193,7 +194,6 @@ class PessoaJuridicaServiceTests {
         assertEquals("Pessoa Jurídica não encontrada. ID: 1", ex.getMessage());
     }
 
-
     @Test
     void findAll_shouldReturnList() {
         when(repository.findAll()).thenReturn(List.of(entity));
@@ -204,7 +204,6 @@ class PessoaJuridicaServiceTests {
         assertEquals(entity.getCnpj(), list.get(0).getCnpj());
     }
 
-
     @Test
     void findByName_shouldThrowIllegalArgumentException_whenBlank() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
@@ -214,15 +213,14 @@ class PessoaJuridicaServiceTests {
     }
 
     @Test
-    void findByName_shouldUppercaseAndReturnList() {
-        when(repository.findByName("EMPRESA")).thenReturn(List.of(entity));
+    void findByName_shouldTrimAndReturnList() {
+        when(repository.findByName("empresa")).thenReturn(List.of(entity));
 
-        List<PessoaJuridicaDTO> result = service.findByName("empresa");
+        List<PessoaJuridicaDTO> result = service.findByName("  empresa  ");
 
         assertEquals(1, result.size());
-        verify(repository).findByName("EMPRESA");
+        verify(repository).findByName("empresa");
     }
-
 
     @Test
     void findByCnpj_shouldThrowIllegalArgumentException_whenBlank() {
@@ -233,13 +231,14 @@ class PessoaJuridicaServiceTests {
     }
 
     @Test
-    void findByCnpj_shouldReturnDTO_whenFound() {
-        when(repository.findByCnpj(dto.getCnpj())).thenReturn(Optional.of(entity));
+    void findByCnpj_shouldReturnDTO_whenFound_normalizingMask() {
+        when(repository.findByCnpj("12345678000100")).thenReturn(Optional.of(entity));
 
-        PessoaJuridicaDTO result = service.findByCnpj(dto.getCnpj());
+        PessoaJuridicaDTO result = service.findByCnpj("12.345.678/0001-00");
 
         assertNotNull(result);
-        assertEquals(dto.getCnpj(), result.getCnpj());
+        assertEquals("12345678000100", result.getCnpj());
+        verify(repository).findByCnpj("12345678000100");
     }
 
     @Test
@@ -247,11 +246,10 @@ class PessoaJuridicaServiceTests {
         when(repository.findByCnpj(anyString())).thenReturn(Optional.empty());
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> service.findByCnpj(dto.getCnpj()));
+                () -> service.findByCnpj("12.345.678/0001-00"));
 
-        assertEquals("CNPJ não encontrado: " + dto.getCnpj(), ex.getMessage());
+        assertEquals("CNPJ não encontrado: 12345678000100", ex.getMessage());
     }
-
 
     @Test
     void findPage_shouldReturnPage() {

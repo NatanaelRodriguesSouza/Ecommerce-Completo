@@ -25,7 +25,6 @@ public class PessoaController {
         this.pessoaJuridicaService = pessoaJuridicaService;
     }
 
-
     @PostMapping("/fisicas")
     public ResponseEntity<PessoaFisicaDTO> createFisica(@Valid @RequestBody PessoaFisicaDTO dto) {
         PessoaFisicaDTO created = pessoaFisicaService.insert(dto);
@@ -43,7 +42,7 @@ public class PessoaController {
 
     @GetMapping("/fisicas/{id}")
     public ResponseEntity<PessoaFisicaDTO> findFisicaById(@PathVariable Long id) {
-        return ResponseEntity.ok(pessoaFisicaService.findByID(id));
+        return ResponseEntity.ok(pessoaFisicaService.findById(id));
     }
 
     @GetMapping("/fisicas")
@@ -52,7 +51,7 @@ public class PessoaController {
     }
 
     @GetMapping("/fisicas/busca")
-    public ResponseEntity<List<PessoaFisicaDTO>> findFisicasByName(@RequestParam String nome) {
+    public ResponseEntity<List<PessoaFisicaDTO>> findFisicasByName(@RequestParam("nome") String nome) {
         return ResponseEntity.ok(pessoaFisicaService.findByName(nome));
     }
 
@@ -73,6 +72,8 @@ public class PessoaController {
         pessoaFisicaService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+
 
     @PostMapping("/juridicas")
     public ResponseEntity<PessoaJuridicaDTO> createJuridica(@Valid @RequestBody PessoaJuridicaDTO dto) {
@@ -100,7 +101,7 @@ public class PessoaController {
     }
 
     @GetMapping("/juridicas/busca")
-    public ResponseEntity<List<PessoaJuridicaDTO>> findJuridicasByName(@RequestParam String nome) {
+    public ResponseEntity<List<PessoaJuridicaDTO>> findJuridicasByName(@RequestParam("nome") String nome) {
         return ResponseEntity.ok(pessoaJuridicaService.findByName(nome));
     }
 

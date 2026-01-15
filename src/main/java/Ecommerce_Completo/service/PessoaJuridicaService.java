@@ -19,16 +19,18 @@ public class PessoaJuridicaService {
     private final PessoaJuridicaRepository repository;
 
     public PessoaJuridicaService(PessoaJuridicaRepository repository) {
-        this.repository = repository;
+        this.repository = Objects.requireNonNull(repository, "PessoaJuridicaRepository não pode ser nulo.");
     }
 
     @Transactional
     public PessoaJuridicaDTO insert(PessoaJuridicaDTO dto) {
         Objects.requireNonNull(dto, "DTO não pode ser nulo.");
-        validateCnpjUnique(dto.getCnpj(), null);
+
+        final String cnpj = normalizeCnpj(requireNotBlank(dto.getCnpj(), "CNPJ não pode ser vazio."));
+        validateCnpjUniqueForInsert(cnpj);
 
         PessoaJuridica entity = new PessoaJuridica();
-        fillEntity(entity, dto);
+        fillEntity(entity, dto, cnpj);
 
         entity = repository.save(entity);
         return toDTO(entity);
@@ -37,15 +39,19 @@ public class PessoaJuridicaService {
     @Transactional
     public PessoaJuridicaDTO update(PessoaJuridicaDTO dto) {
         Objects.requireNonNull(dto, "DTO não pode ser nulo.");
-        if (dto.getId() == null) {
+
+        final Long id = dto.getId();
+        if (id == null) {
             throw new IllegalArgumentException("ID é obrigatório para atualização.");
         }
 
-        PessoaJuridica entity = repository.findById(dto.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Pessoa Jurídica não encontrada. ID: " + dto.getId()));
+        PessoaJuridica entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Pessoa Jurídica não encontrada. ID: " + id));
 
-        validateCnpjUnique(dto.getCnpj(), dto.getId());
-        fillEntity(entity, dto);
+        final String cnpj = normalizeCnpj(requireNotBlank(dto.getCnpj(), "CNPJ não pode ser vazio."));
+        validateCnpjUniqueForUpdate(cnpj, id);
+
+        fillEntity(entity, dto, cnpj);
 
         entity = repository.save(entity);
         return toDTO(entity);
@@ -71,11 +77,9 @@ public class PessoaJuridicaService {
 
     @Transactional(readOnly = true)
     public List<PessoaJuridicaDTO> findByName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Nome não pode ser vazio.");
-        }
+        final String term = requireNotBlank(name, "Nome não pode ser vazio.").trim();
 
-        return repository.findByName(name.toUpperCase())
+        return repository.findByName(term)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -83,12 +87,10 @@ public class PessoaJuridicaService {
 
     @Transactional(readOnly = true)
     public PessoaJuridicaDTO findByCnpj(String cnpj) {
-        if (cnpj == null || cnpj.isBlank()) {
-            throw new IllegalArgumentException("CNPJ não pode ser vazio.");
-        }
+        final String value = normalizeCnpj(requireNotBlank(cnpj, "CNPJ não pode ser vazio."));
 
-        PessoaJuridica entity = repository.findByCnpj(cnpj)
-                .orElseThrow(() -> new EntityNotFoundException("CNPJ não encontrado: " + cnpj));
+        PessoaJuridica entity = repository.findByCnpj(value)
+                .orElseThrow(() -> new EntityNotFoundException("CNPJ não encontrado: " + value));
 
         return toDTO(entity);
     }
@@ -112,29 +114,44 @@ public class PessoaJuridicaService {
         repository.delete(entity);
     }
 
-    private void validateCnpjUnique(String cnpj, Long currentId) {
-        if (cnpj == null || cnpj.isBlank()) {
-            throw new IllegalArgumentException("CNPJ não pode ser vazio.");
+    private void validateCnpjUniqueForInsert(String cnpj) {
+        if (repository.existsByCnpj(cnpj)) {
+            throw new IllegalArgumentException("CNPJ já cadastrado: " + cnpj);
         }
-
-        repository.findByCnpj(cnpj)
-                .filter(found -> currentId == null || !found.getId().equals(currentId))
-                .ifPresent(found -> { throw new IllegalArgumentException("CNPJ já cadastrado: " + cnpj); });
     }
 
-    private void fillEntity(PessoaJuridica entity, PessoaJuridicaDTO dto) {
-        entity.setNome(dto.getNome());
-        entity.setEmail(dto.getEmail());
-        entity.setTelefone(dto.getTelefone());
+    private void validateCnpjUniqueForUpdate(String cnpj, Long currentId) {
+        repository.findByCnpj(cnpj)
+                .filter(found -> !found.getId().equals(currentId))
+                .ifPresent(found -> {
+                    throw new IllegalArgumentException("CNPJ já cadastrado: " + cnpj);
+                });
+    }
 
-        entity.setCnpj(dto.getCnpj());
-        entity.setInscEstadual(dto.getInscEstadual());
-        entity.setInscMunicipal(dto.getInscMunicipal());
-        entity.setNomeFantasia(dto.getNomeFantasia());
-        entity.setRazaoSocial(dto.getRazaoSocial());
-        entity.setCategoria(dto.getCategoria());
+    private String requireNotBlank(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
+        return value;
+    }
 
+
+    private String normalizeCnpj(String cnpj) {
+        return cnpj.replaceAll("\\D", "");
+    }
+
+    private void fillEntity(PessoaJuridica entity, PessoaJuridicaDTO dto, String normalizedCnpj) {
+        entity.setNome(requireNotBlank(dto.getNome(), "Nome é obrigatório."));
+        entity.setEmail(requireNotBlank(dto.getEmail(), "Email é obrigatório."));
+        entity.setTelefone(requireNotBlank(dto.getTelefone(), "Telefone é obrigatório."));
         entity.setTipoPessoa("JURIDICA");
+
+        entity.setCnpj(normalizedCnpj);
+        entity.setInscEstadual(requireNotBlank(dto.getInscEstadual(), "Inscrição Estadual é obrigatória."));
+        entity.setInscMunicipal(dto.getInscMunicipal());
+        entity.setNomeFantasia(requireNotBlank(dto.getNomeFantasia(), "Nome Fantasia é obrigatório."));
+        entity.setRazaoSocial(requireNotBlank(dto.getRazaoSocial(), "Razão Social é obrigatória."));
+        entity.setCategoria(dto.getCategoria());
     }
 
     private PessoaJuridicaDTO toDTO(PessoaJuridica entity) {
