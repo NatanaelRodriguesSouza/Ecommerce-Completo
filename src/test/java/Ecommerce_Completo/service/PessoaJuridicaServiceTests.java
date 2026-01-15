@@ -1,6 +1,9 @@
 package Ecommerce_Completo.service;
 
+import Ecommerce_Completo.enums.TipoEndereco;
+import Ecommerce_Completo.model.DTO.EnderecoDTO;
 import Ecommerce_Completo.model.DTO.PessoaJuridicaDTO;
+import Ecommerce_Completo.model.Endereco;
 import Ecommerce_Completo.model.PessoaJuridica;
 import Ecommerce_Completo.repository.PessoaJuridicaRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -157,4 +160,152 @@ class PessoaJuridicaServiceTests {
         assertEquals("Pessoa Jurídica não encontrada. ID: 1", ex.getMessage());
         verifyNoInteractions(usuarioService);
     }
+
+    @Test
+    void insert_shouldPersistAndReturnEnderecos() {
+        EnderecoDTO endereco = new EnderecoDTO();
+        endereco.setRuaLogra("Rua A");
+        endereco.setCep("12345-000");
+        endereco.setNumero("10");
+        endereco.setBairro("Centro");
+        endereco.setCidade("São Paulo");
+        endereco.setUf("SP");
+        endereco.setTipoEndereco(TipoEndereco.ENTREGA);
+
+        dto.setEnderecos(List.of(endereco));
+
+        when(repository.existsByCnpj("12345678000199")).thenReturn(false);
+        when(repository.save(any())).thenAnswer(inv -> {
+            PessoaJuridica pj = inv.getArgument(0);
+            pj.setId(1L);
+            pj.getEnderecos().forEach(e -> e.setId(1L));
+            return pj;
+        });
+
+        dto.setCnpj("12.345.678/0001-99");
+
+        PessoaJuridicaDTO result = service.insert(dto);
+
+        assertEquals(1, result.getEnderecos().size());
+        assertEquals("Rua A", result.getEnderecos().get(0).getRuaLogra());
+
+        verify(usuarioService).criarUsuarioParaPessoa(any(), any(), eq(dto.getEmail()));
+    }
+
+    @Test
+    void insert_shouldIgnoreEnderecoSync_whenEnderecosIsNull() {
+        dto.setEnderecos(null);
+
+        when(repository.existsByCnpj("12345678000199")).thenReturn(false);
+        when(repository.save(any())).thenAnswer(inv -> {
+            PessoaJuridica pj = inv.getArgument(0);
+            pj.setId(1L);
+            return pj;
+        });
+
+        dto.setCnpj("12.345.678/0001-99");
+
+        PessoaJuridicaDTO result = service.insert(dto);
+
+        assertTrue(result.getEnderecos().isEmpty());
+    }
+
+    @Test
+    void insert_shouldThrowException_whenEnderecoCepIsBlank() {
+        EnderecoDTO endereco = new EnderecoDTO();
+        endereco.setRuaLogra("Rua A");
+        endereco.setCep(" ");
+        endereco.setNumero("10");
+        endereco.setBairro("Centro");
+        endereco.setCidade("SP");
+        endereco.setUf("SP");
+        endereco.setTipoEndereco(TipoEndereco.COBRANCA);
+
+        dto.setEnderecos(List.of(endereco));
+        dto.setCnpj("12.345.678/0001-99");
+
+        when(repository.existsByCnpj("12345678000199")).thenReturn(false);
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.insert(dto)
+        );
+
+        assertEquals("CEP é obrigatório.", ex.getMessage());
+    }
+
+    @Test
+    void insert_shouldThrowException_whenTipoEnderecoIsNull() {
+        EnderecoDTO endereco = new EnderecoDTO();
+        endereco.setRuaLogra("Rua A");
+        endereco.setCep("12345-000");
+        endereco.setNumero("10");
+        endereco.setBairro("Centro");
+        endereco.setCidade("SP");
+        endereco.setUf("SP");
+        endereco.setTipoEndereco(null);
+
+        dto.setEnderecos(List.of(endereco));
+        dto.setCnpj("12.345.678/0001-99");
+
+        when(repository.existsByCnpj("12345678000199")).thenReturn(false);
+
+        NullPointerException ex = assertThrows(
+                NullPointerException.class,
+                () -> service.insert(dto)
+        );
+
+        assertEquals("Tipo de endereço é obrigatório.", ex.getMessage());
+    }
+
+    @Test
+    void update_shouldReplaceExistingEnderecos() {
+        PessoaJuridica entity = new PessoaJuridica();
+        entity.setId(1L);
+
+        Endereco antigo = new Endereco();
+        antigo.setRuaLogra("Rua Antiga");
+        antigo.setEmpresa(entity);
+        entity.getEnderecos().add(antigo);
+
+        EnderecoDTO novo = new EnderecoDTO();
+        novo.setRuaLogra("Rua Nova");
+        novo.setCep("99999-000");
+        novo.setNumero("50");
+        novo.setBairro("Novo");
+        novo.setCidade("Curitiba");
+        novo.setUf("PR");
+        novo.setTipoEndereco(TipoEndereco.COBRANCA);
+
+        dto.setId(1L);
+        dto.setEnderecos(List.of(novo));
+        dto.setCnpj("12.345.678/0001-99");
+
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(repository.findByCnpj("12345678000199")).thenReturn(Optional.of(entity));
+        when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        PessoaJuridicaDTO result = service.update(dto);
+
+        assertEquals(1, result.getEnderecos().size());
+        assertEquals("Rua Nova", result.getEnderecos().get(0).getRuaLogra());
+    }
+
+    @Test
+    void insert_shouldNormalizeCnpj() {
+        dto.setCnpj("12.345.678/0001-99");
+
+        when(repository.existsByCnpj("12345678000199")).thenReturn(false);
+        when(repository.save(any())).thenAnswer(inv -> {
+            PessoaJuridica pj = inv.getArgument(0);
+            pj.setId(1L);
+            return pj;
+        });
+
+        PessoaJuridicaDTO result = service.insert(dto);
+
+        assertEquals("12345678000199", result.getCnpj());
+    }
+
+
 }

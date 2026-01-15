@@ -1,6 +1,9 @@
 package Ecommerce_Completo.service;
 
+import Ecommerce_Completo.enums.TipoEndereco;
+import Ecommerce_Completo.model.DTO.EnderecoDTO;
 import Ecommerce_Completo.model.DTO.PessoaFisicaDTO;
+import Ecommerce_Completo.model.Endereco;
 import Ecommerce_Completo.model.PessoaFisica;
 import Ecommerce_Completo.model.PessoaJuridica;
 import Ecommerce_Completo.repository.PessoaFisicaRepository;
@@ -209,4 +212,154 @@ class PessoaFisicaServiceTests {
         verify(repository).delete(entity);
         verifyNoInteractions(usuarioService);
     }
+    @Test
+    void insert_shouldThrowException_whenEnderecoProvidedWithoutEmpresa() {
+        EnderecoDTO enderecoDTO = new EnderecoDTO();
+        enderecoDTO.setRuaLogra("Rua A");
+        enderecoDTO.setCep("12345-000");
+        enderecoDTO.setNumero("10");
+        enderecoDTO.setBairro("Centro");
+        enderecoDTO.setCidade("São Paulo");
+        enderecoDTO.setUf("SP");
+        enderecoDTO.setTipoEndereco(TipoEndereco.ENTREGA);
+
+        dto.setEnderecos(List.of(enderecoDTO)); // empresaId = null
+
+        when(repository.existsByCpf("123")).thenReturn(false);
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.insert(dto)
+        );
+
+        assertEquals(
+                "Para cadastrar endereço, a Pessoa Física precisa estar vinculada a uma empresa (empresaId).",
+                ex.getMessage()
+        );
+
+        verify(repository, never()).save(any());
+        verifyNoInteractions(usuarioService);
+    }
+
+    @Test
+    void insert_shouldIgnoreEnderecoSync_whenEnderecosIsNull() {
+        dto.setEmpresaId(10L);
+        dto.setEnderecos(null);
+
+        PessoaJuridica empresa = new PessoaJuridica();
+        empresa.setId(10L);
+
+        when(repository.existsByCpf("123")).thenReturn(false);
+        when(pessoaJuridicaRepository.findById(10L)).thenReturn(Optional.of(empresa));
+
+        when(repository.save(any(PessoaFisica.class))).thenAnswer(inv -> {
+            PessoaFisica pf = inv.getArgument(0);
+            pf.setId(1L);
+            return pf;
+        });
+
+        PessoaFisicaDTO result = service.insert(dto);
+
+        assertNotNull(result);
+        assertTrue(result.getEnderecos().isEmpty());
+
+        verify(repository).save(any());
+    }
+
+
+    @Test
+    void insert_shouldThrowException_whenEnderecoCepIsBlank() {
+        dto.setEmpresaId(10L);
+
+        EnderecoDTO enderecoDTO = new EnderecoDTO();
+        enderecoDTO.setRuaLogra("Rua A");
+        enderecoDTO.setCep(" ");
+        enderecoDTO.setNumero("10");
+        enderecoDTO.setBairro("Centro");
+        enderecoDTO.setCidade("São Paulo");
+        enderecoDTO.setUf("SP");
+        enderecoDTO.setTipoEndereco(TipoEndereco.ENTREGA);
+
+        dto.setEnderecos(List.of(enderecoDTO));
+
+        PessoaJuridica empresa = new PessoaJuridica();
+        empresa.setId(10L);
+
+        when(repository.existsByCpf("123")).thenReturn(false);
+        when(pessoaJuridicaRepository.findById(10L)).thenReturn(Optional.of(empresa));
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.insert(dto)
+        );
+
+        assertEquals("CEP é obrigatório.", ex.getMessage());
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void update_shouldReplaceExistingEnderecos() {
+        PessoaJuridica empresa = new PessoaJuridica();
+        empresa.setId(10L);
+        entity.setEmpresa(empresa);
+
+        Endereco antigo = new Endereco();
+        antigo.setRuaLogra("Rua Antiga");
+        antigo.setPessoa(entity);
+        antigo.setEmpresa(empresa);
+        entity.getEnderecos().add(antigo);
+
+        EnderecoDTO novoEndereco = new EnderecoDTO();
+        novoEndereco.setRuaLogra("Rua Nova");
+        novoEndereco.setCep("99999-000");
+        novoEndereco.setNumero("50");
+        novoEndereco.setBairro("Novo Bairro");
+        novoEndereco.setCidade("Curitiba");
+        novoEndereco.setUf("PR");
+        novoEndereco.setTipoEndereco(TipoEndereco.COBRANCA);
+
+        dto.setEmpresaId(10L);
+        dto.setEnderecos(List.of(novoEndereco));
+
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
+        when(repository.findByCpf("123")).thenReturn(Optional.of(entity));
+        when(pessoaJuridicaRepository.findById(10L)).thenReturn(Optional.of(empresa));
+        when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        PessoaFisicaDTO result = service.update(dto);
+
+        assertEquals(1, result.getEnderecos().size());
+        assertEquals("Rua Nova", result.getEnderecos().get(0).getRuaLogra());
+    }
+
+    @Test
+    void insert_shouldThrowException_whenTipoEnderecoIsNull() {
+        dto.setEmpresaId(10L);
+
+        EnderecoDTO enderecoDTO = new EnderecoDTO();
+        enderecoDTO.setRuaLogra("Rua A");
+        enderecoDTO.setCep("12345-000");
+        enderecoDTO.setNumero("10");
+        enderecoDTO.setBairro("Centro");
+        enderecoDTO.setCidade("São Paulo");
+        enderecoDTO.setUf("SP");
+        enderecoDTO.setTipoEndereco(null);
+
+        dto.setEnderecos(List.of(enderecoDTO));
+
+        PessoaJuridica empresa = new PessoaJuridica();
+        empresa.setId(10L);
+
+        when(repository.existsByCpf("123")).thenReturn(false);
+        when(pessoaJuridicaRepository.findById(10L)).thenReturn(Optional.of(empresa));
+
+        NullPointerException ex = assertThrows(
+                NullPointerException.class,
+                () -> service.insert(dto)
+        );
+
+        assertEquals("Tipo de endereço é obrigatório.", ex.getMessage());
+    }
+
+
 }

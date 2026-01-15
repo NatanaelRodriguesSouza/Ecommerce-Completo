@@ -1,6 +1,8 @@
 package Ecommerce_Completo.service;
 
+import Ecommerce_Completo.model.DTO.EnderecoDTO;
 import Ecommerce_Completo.model.DTO.PessoaJuridicaDTO;
+import Ecommerce_Completo.model.Endereco;
 import Ecommerce_Completo.model.PessoaJuridica;
 import Ecommerce_Completo.repository.PessoaJuridicaRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -152,11 +154,38 @@ public class PessoaJuridicaService {
         entity.setTipoPessoa("JURIDICA");
 
         entity.setCnpj(normalizedCnpj);
-        entity.setInscEstadual(requireNotBlank(dto.getInscEstadual(), "Inscrição Estadual é obrigatória."));
+
+        entity.setInscEstadual(dto.getInscEstadual());
         entity.setInscMunicipal(dto.getInscMunicipal());
+
         entity.setNomeFantasia(requireNotBlank(dto.getNomeFantasia(), "Nome Fantasia é obrigatório."));
         entity.setRazaoSocial(requireNotBlank(dto.getRazaoSocial(), "Razão Social é obrigatória."));
-        entity.setCategoria(dto.getCategoria());
+        entity.setCategoria(requireNotBlank(dto.getCategoria(), "Categoria é obrigatória."));
+
+        syncEnderecos(entity, dto.getEnderecos());
+    }
+
+
+    private void syncEnderecos(PessoaJuridica pessoa, List<EnderecoDTO> enderecosDto) {
+        if (enderecosDto == null) return;
+
+        pessoa.getEnderecos().clear();
+
+        for (EnderecoDTO eDto : enderecosDto) {
+            Endereco e = new Endereco();
+            e.setRuaLogra(requireNotBlank(eDto.getRuaLogra(), "Rua/Logradouro é obrigatório."));
+            e.setCep(requireNotBlank(eDto.getCep(), "CEP é obrigatório."));
+            e.setNumero(requireNotBlank(eDto.getNumero(), "Número é obrigatório."));
+            e.setComplemento(eDto.getComplemento());
+            e.setBairro(requireNotBlank(eDto.getBairro(), "Bairro é obrigatório."));
+            e.setUf(requireNotBlank(eDto.getUf(), "UF é obrigatório."));
+            e.setCidade(requireNotBlank(eDto.getCidade(), "Cidade é obrigatória."));
+            e.setTipoEndereco(Objects.requireNonNull(eDto.getTipoEndereco(), "Tipo de endereço é obrigatório."));
+
+            e.setPessoa(pessoa);
+            e.setEmpresa(pessoa);
+            pessoa.getEnderecos().add(e);
+        }
     }
 
     private PessoaJuridicaDTO toDTO(PessoaJuridica entity) {
@@ -172,6 +201,24 @@ public class PessoaJuridicaService {
         dto.setNomeFantasia(entity.getNomeFantasia());
         dto.setRazaoSocial(entity.getRazaoSocial());
         dto.setCategoria(entity.getCategoria());
+
+        if (entity.getEnderecos() != null) {
+            dto.setEnderecos(
+                    entity.getEnderecos().stream().map(e -> {
+                        EnderecoDTO eDto = new EnderecoDTO();
+                        eDto.setId(e.getId());
+                        eDto.setRuaLogra(e.getRuaLogra());
+                        eDto.setCep(e.getCep());
+                        eDto.setNumero(e.getNumero());
+                        eDto.setComplemento(e.getComplemento());
+                        eDto.setBairro(e.getBairro());
+                        eDto.setUf(e.getUf());
+                        eDto.setCidade(e.getCidade());
+                        eDto.setTipoEndereco(e.getTipoEndereco());
+                        return eDto;
+                    }).collect(Collectors.toList())
+            );
+        }
 
         return dto;
     }

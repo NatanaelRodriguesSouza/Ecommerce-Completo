@@ -1,6 +1,8 @@
 package Ecommerce_Completo.service;
 
+import Ecommerce_Completo.model.DTO.EnderecoDTO;
 import Ecommerce_Completo.model.DTO.PessoaFisicaDTO;
+import Ecommerce_Completo.model.Endereco;
 import Ecommerce_Completo.model.PessoaFisica;
 import Ecommerce_Completo.model.PessoaJuridica;
 import Ecommerce_Completo.repository.PessoaFisicaRepository;
@@ -162,6 +164,37 @@ public class PessoaFisicaService {
         } else {
             entity.setEmpresa(null);
         }
+
+        syncEnderecos(entity, dto.getEnderecos());
+    }
+
+    private void syncEnderecos(PessoaFisica pessoa, List<EnderecoDTO> enderecosDto) {
+        if (enderecosDto == null) return;
+
+        if (!enderecosDto.isEmpty() && pessoa.getEmpresa() == null) {
+            throw new IllegalArgumentException(
+                    "Para cadastrar endereço, a Pessoa Física precisa estar vinculada a uma empresa (empresaId)."
+            );
+        }
+
+        pessoa.getEnderecos().clear();
+
+        for (EnderecoDTO eDto : enderecosDto) {
+            Endereco e = new Endereco();
+            e.setRuaLogra(requireNotBlank(eDto.getRuaLogra(), "Rua/Logradouro é obrigatório."));
+            e.setCep(requireNotBlank(eDto.getCep(), "CEP é obrigatório."));
+            e.setNumero(requireNotBlank(eDto.getNumero(), "Número é obrigatório."));
+            e.setComplemento(eDto.getComplemento());
+            e.setBairro(requireNotBlank(eDto.getBairro(), "Bairro é obrigatório."));
+            e.setUf(requireNotBlank(eDto.getUf(), "UF é obrigatório."));
+            e.setCidade(requireNotBlank(eDto.getCidade(), "Cidade é obrigatória."));
+            e.setTipoEndereco(Objects.requireNonNull(eDto.getTipoEndereco(), "Tipo de endereço é obrigatório."));
+
+            e.setPessoa(pessoa);
+            e.setEmpresa(pessoa.getEmpresa());
+
+            pessoa.getEnderecos().add(e);
+        }
     }
 
     private PessoaFisicaDTO toDTO(PessoaFisica entity) {
@@ -176,6 +209,25 @@ public class PessoaFisicaService {
         if (entity.getEmpresa() != null) {
             dto.setEmpresaId(entity.getEmpresa().getId());
         }
+
+        if (entity.getEnderecos() != null) {
+            dto.setEnderecos(
+                    entity.getEnderecos().stream().map(e -> {
+                        EnderecoDTO eDto = new EnderecoDTO();
+                        eDto.setId(e.getId());
+                        eDto.setRuaLogra(e.getRuaLogra());
+                        eDto.setCep(e.getCep());
+                        eDto.setNumero(e.getNumero());
+                        eDto.setComplemento(e.getComplemento());
+                        eDto.setBairro(e.getBairro());
+                        eDto.setUf(e.getUf());
+                        eDto.setCidade(e.getCidade());
+                        eDto.setTipoEndereco(e.getTipoEndereco());
+                        return eDto;
+                    }).collect(Collectors.toList())
+            );
+        }
+
         return dto;
     }
 }

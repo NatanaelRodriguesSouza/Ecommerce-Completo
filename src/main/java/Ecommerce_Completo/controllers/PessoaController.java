@@ -1,5 +1,6 @@
 package Ecommerce_Completo.controllers;
 
+import Ecommerce_Completo.model.DTO.EnderecoDTO;
 import Ecommerce_Completo.model.DTO.PessoaFisicaDTO;
 import Ecommerce_Completo.model.DTO.PessoaJuridicaDTO;
 import Ecommerce_Completo.service.PessoaFisicaService;
@@ -8,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
@@ -28,7 +30,13 @@ public class PessoaController {
     @PostMapping("/fisicas")
     public ResponseEntity<PessoaFisicaDTO> createFisica(@Valid @RequestBody PessoaFisicaDTO dto) {
         PessoaFisicaDTO created = pessoaFisicaService.insert(dto);
-        URI location = URI.create("/pessoas/fisicas/" + created.getId());
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+
         return ResponseEntity.created(location).body(created);
     }
 
@@ -73,12 +81,51 @@ public class PessoaController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/fisicas/{id}/enderecos")
+    public ResponseEntity<PessoaFisicaDTO> replaceEnderecosFisica(@PathVariable Long id,
+                                                                  @Valid @RequestBody List<EnderecoDTO> enderecos) {
+        PessoaFisicaDTO current = pessoaFisicaService.findById(id);
+        current.setEnderecos(enderecos);
+        PessoaFisicaDTO updated = pessoaFisicaService.update(current);
+        return ResponseEntity.ok(updated);
+    }
 
+    @PostMapping("/fisicas/{id}/enderecos")
+    public ResponseEntity<PessoaFisicaDTO> addEnderecoFisica(@PathVariable Long id,
+                                                             @Valid @RequestBody EnderecoDTO endereco) {
+        PessoaFisicaDTO current = pessoaFisicaService.findById(id);
+        current.getEnderecos().add(endereco);
+
+        PessoaFisicaDTO updated = pessoaFisicaService.update(current);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{enderecoIndex}")
+                .buildAndExpand(updated.getEnderecos().size() - 1)
+                .toUri();
+
+        return ResponseEntity.created(location).body(updated);
+    }
+
+    @DeleteMapping("/fisicas/{id}/enderecos/{enderecoId}")
+    public ResponseEntity<Void> deleteEnderecoFisica(@PathVariable Long id,
+                                                     @PathVariable Long enderecoId) {
+        PessoaFisicaDTO current = pessoaFisicaService.findById(id);
+        current.getEnderecos().removeIf(e -> e.getId() != null && e.getId().equals(enderecoId));
+        pessoaFisicaService.update(current);
+        return ResponseEntity.noContent().build();
+    }
 
     @PostMapping("/juridicas")
     public ResponseEntity<PessoaJuridicaDTO> createJuridica(@Valid @RequestBody PessoaJuridicaDTO dto) {
         PessoaJuridicaDTO created = pessoaJuridicaService.insert(dto);
-        URI location = URI.create("/pessoas/juridicas/" + created.getId());
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+
         return ResponseEntity.created(location).body(created);
     }
 
@@ -120,6 +167,41 @@ public class PessoaController {
     @DeleteMapping("/juridicas/{id}")
     public ResponseEntity<Void> deleteJuridica(@PathVariable Long id) {
         pessoaJuridicaService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/juridicas/{id}/enderecos")
+    public ResponseEntity<PessoaJuridicaDTO> replaceEnderecosJuridica(@PathVariable Long id,
+                                                                      @Valid @RequestBody List<EnderecoDTO> enderecos) {
+        PessoaJuridicaDTO current = pessoaJuridicaService.findById(id);
+        current.setEnderecos(enderecos);
+        PessoaJuridicaDTO updated = pessoaJuridicaService.update(current);
+        return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/juridicas/{id}/enderecos")
+    public ResponseEntity<PessoaJuridicaDTO> addEnderecoJuridica(@PathVariable Long id,
+                                                                 @Valid @RequestBody EnderecoDTO endereco) {
+        PessoaJuridicaDTO current = pessoaJuridicaService.findById(id);
+        current.getEnderecos().add(endereco);
+
+        PessoaJuridicaDTO updated = pessoaJuridicaService.update(current);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{enderecoIndex}")
+                .buildAndExpand(updated.getEnderecos().size() - 1)
+                .toUri();
+
+        return ResponseEntity.created(location).body(updated);
+    }
+
+    @DeleteMapping("/juridicas/{id}/enderecos/{enderecoId}")
+    public ResponseEntity<Void> deleteEnderecoJuridica(@PathVariable Long id,
+                                                       @PathVariable Long enderecoId) {
+        PessoaJuridicaDTO current = pessoaJuridicaService.findById(id);
+        current.getEnderecos().removeIf(e -> e.getId() != null && e.getId().equals(enderecoId));
+        pessoaJuridicaService.update(current);
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,9 +1,13 @@
 package Ecommerce_Completo.model.DTO;
 
 import Ecommerce_Completo.util.validation.CNPJ;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PessoaJuridicaDTO {
 
@@ -43,12 +47,24 @@ public class PessoaJuridicaDTO {
     @Size(max = 80, message = "Categoria deve ter no máximo 80 caracteres")
     private String categoria;
 
+    private List<@Valid EnderecoDTO> enderecos = new ArrayList<>();
+
     public PessoaJuridicaDTO() {
     }
 
-    public PessoaJuridicaDTO(Long id, String nome, String email, String telefone, String cnpj,
-                             String inscEstadual, String inscMunicipal, String nomeFantasia,
-                             String razaoSocial, String categoria) {
+    public PessoaJuridicaDTO(
+            Long id,
+            String nome,
+            String email,
+            String telefone,
+            String cnpj,
+            String inscEstadual,
+            String inscMunicipal,
+            String nomeFantasia,
+            String razaoSocial,
+            String categoria,
+            List<EnderecoDTO> enderecos
+    ) {
         this.id = id;
         this.nome = nome;
         this.email = email;
@@ -59,6 +75,7 @@ public class PessoaJuridicaDTO {
         this.nomeFantasia = nomeFantasia;
         this.razaoSocial = razaoSocial;
         this.categoria = categoria;
+        this.enderecos = enderecos != null ? enderecos : new ArrayList<>();
     }
 
     public Long getId() { return id; }
@@ -90,4 +107,9 @@ public class PessoaJuridicaDTO {
 
     public String getCategoria() { return categoria; }
     public void setCategoria(String categoria) { this.categoria = categoria; }
+
+    public List<EnderecoDTO> getEnderecos() { return enderecos; }
+    public void setEnderecos(List<EnderecoDTO> enderecos) {
+        this.enderecos = enderecos != null ? enderecos : new ArrayList<>();
+    }
 }

@@ -1,11 +1,9 @@
 package Ecommerce_Completo.model.DTO;
 
+import Ecommerce_Completo.enums.TipoEndereco;
 import Ecommerce_Completo.util.validation.CPF;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,14 +34,14 @@ public class PessoaFisicaDTO {
     private Date dataNascimento;
 
     private Long empresaId;
+    @NotEmpty(message = "Informe ao menos um endereço")
+    private List<@Valid EnderecoDTO> enderecos = new ArrayList<>();
 
-    private List<Long> enderecosIds = new ArrayList<>();
-
-    public PessoaFisicaDTO() {
-    }
+    public PessoaFisicaDTO() {}
 
     public PessoaFisicaDTO(Long id, String nome, String email, String telefone,
-                           String cpf, Date dataNascimento, Long empresaId, List<Long> enderecosIds) {
+                           String cpf, Date dataNascimento, Long empresaId,
+                           List<EnderecoDTO> enderecos) {
         this.id = id;
         this.nome = nome;
         this.email = email;
@@ -51,7 +49,7 @@ public class PessoaFisicaDTO {
         this.cpf = cpf;
         this.dataNascimento = dataNascimento;
         this.empresaId = empresaId;
-        this.enderecosIds = enderecosIds;
+        this.enderecos = enderecos != null ? enderecos : new ArrayList<>();
     }
 
     public Long getId() { return id; }
@@ -75,6 +73,8 @@ public class PessoaFisicaDTO {
     public Long getEmpresaId() { return empresaId; }
     public void setEmpresaId(Long empresaId) { this.empresaId = empresaId; }
 
-    public List<Long> getEnderecosIds() { return enderecosIds; }
-    public void setEnderecosIds(List<Long> enderecosIds) { this.enderecosIds = enderecosIds; }
+    public List<EnderecoDTO> getEnderecos() { return enderecos; }
+    public void setEnderecos(List<EnderecoDTO> enderecos) {
+        this.enderecos = (enderecos != null) ? enderecos : new ArrayList<>();
+    }
 }
