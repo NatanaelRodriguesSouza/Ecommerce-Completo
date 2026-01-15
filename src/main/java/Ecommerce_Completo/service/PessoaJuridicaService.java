@@ -17,9 +17,12 @@ import java.util.stream.Collectors;
 public class PessoaJuridicaService {
 
     private final PessoaJuridicaRepository repository;
+    private final UsuarioService usuarioService;
 
-    public PessoaJuridicaService(PessoaJuridicaRepository repository) {
+    public PessoaJuridicaService(PessoaJuridicaRepository repository,
+                                 UsuarioService usuarioService) {
         this.repository = Objects.requireNonNull(repository, "PessoaJuridicaRepository não pode ser nulo.");
+        this.usuarioService = Objects.requireNonNull(usuarioService, "UsuarioService não pode ser nulo.");
     }
 
     @Transactional
@@ -33,6 +36,9 @@ public class PessoaJuridicaService {
         fillEntity(entity, dto, cnpj);
 
         entity = repository.save(entity);
+
+        usuarioService.criarUsuarioParaPessoa(entity, entity, entity.getEmail());
+
         return toDTO(entity);
     }
 
@@ -134,7 +140,6 @@ public class PessoaJuridicaService {
         }
         return value;
     }
-
 
     private String normalizeCnpj(String cnpj) {
         return cnpj.replaceAll("\\D", "");

@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface UsuarioRepository extends JpaRepository<Usuario,Long> {
     Usuario findByLogin(String email);
+    boolean existsByLogin(String login);
 
     @Query(nativeQuery = true, value = """
     SELECT 
@@ -23,6 +24,4 @@ public interface UsuarioRepository extends JpaRepository<Usuario,Long> {
     WHERE u.login = :email
 """)
     List<UserDetailsProjection> searchUserAndRolesByEmail(@Param("email") String email);
-
-
 }

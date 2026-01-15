@@ -20,11 +20,14 @@ public class PessoaFisicaService {
 
     private final PessoaFisicaRepository repository;
     private final PessoaJuridicaRepository pessoaJuridicaRepository;
+    private final UsuarioService usuarioService;
 
     public PessoaFisicaService(PessoaFisicaRepository repository,
-                               PessoaJuridicaRepository pessoaJuridicaRepository) {
+                               PessoaJuridicaRepository pessoaJuridicaRepository,
+                               UsuarioService usuarioService) {
         this.repository = Objects.requireNonNull(repository, "PessoaFisicaRepository não pode ser nulo.");
         this.pessoaJuridicaRepository = Objects.requireNonNull(pessoaJuridicaRepository, "PessoaJuridicaRepository não pode ser nulo.");
+        this.usuarioService = Objects.requireNonNull(usuarioService, "UsuarioService não pode ser nulo.");
     }
 
     @Transactional
@@ -38,6 +41,9 @@ public class PessoaFisicaService {
         fillEntity(entity, dto);
 
         entity = repository.save(entity);
+
+        usuarioService.criarUsuarioParaPessoa(entity, entity.getEmpresa(), entity.getEmail());
+
         return toDTO(entity);
     }
 
@@ -118,7 +124,6 @@ public class PessoaFisicaService {
 
         repository.delete(entity);
     }
-
 
     private void validateCpfUniqueForInsert(String cpf) {
         if (repository.existsByCpf(cpf)) {

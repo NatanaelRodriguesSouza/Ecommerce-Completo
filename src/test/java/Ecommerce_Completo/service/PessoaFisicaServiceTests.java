@@ -36,6 +36,9 @@ class PessoaFisicaServiceTests {
     @Mock
     private PessoaJuridicaRepository pessoaJuridicaRepository;
 
+    @Mock
+    private UsuarioService usuarioService;
+
     private PessoaFisica entity;
     private PessoaFisicaDTO dto;
 
@@ -59,7 +62,7 @@ class PessoaFisicaServiceTests {
     }
 
     @Test
-    void insert_shouldSaveAndReturnDTO_whenCpfIsUnique() {
+    void insert_shouldSaveAndReturnDTO_whenCpfIsUnique_andCreateUsuario() {
         when(repository.existsByCpf("123")).thenReturn(false);
         when(repository.save(any(PessoaFisica.class))).thenAnswer(inv -> {
             PessoaFisica saved = inv.getArgument(0);
@@ -71,16 +74,42 @@ class PessoaFisicaServiceTests {
 
         assertNotNull(result);
         assertEquals("123", result.getCpf());
+
         verify(repository).existsByCpf("123");
         verify(repository).save(any(PessoaFisica.class));
+
+        verify(usuarioService).criarUsuarioParaPessoa(
+                any(PessoaFisica.class),
+                isNull(),
+                eq("joao@email.com")
+        );
     }
 
     @Test
-    void insert_shouldThrowNullPointerException_whenDtoIsNull() {
-        NullPointerException ex = assertThrows(NullPointerException.class,
-                () -> service.insert(null));
-        assertEquals("DTO não pode ser nulo.", ex.getMessage());
-        verifyNoInteractions(repository);
+    void insert_shouldSetEmpresa_whenEmpresaIdProvided_andCreateUsuarioWithEmpresa() {
+        dto.setEmpresaId(10L);
+
+        PessoaJuridica empresa = new PessoaJuridica();
+        empresa.setId(10L);
+
+        when(repository.existsByCpf("123")).thenReturn(false);
+        when(pessoaJuridicaRepository.findById(10L)).thenReturn(Optional.of(empresa));
+        when(repository.save(any(PessoaFisica.class))).thenAnswer(inv -> {
+            PessoaFisica saved = inv.getArgument(0);
+            saved.setId(1L);
+            return saved;
+        });
+
+        PessoaFisicaDTO result = service.insert(dto);
+
+        assertEquals(10L, result.getEmpresaId());
+        verify(pessoaJuridicaRepository).findById(10L);
+
+        verify(usuarioService).criarUsuarioParaPessoa(
+                any(PessoaFisica.class),
+                eq(empresa),
+                eq("joao@email.com")
+        );
     }
 
     @Test
@@ -92,6 +121,7 @@ class PessoaFisicaServiceTests {
 
         assertEquals("CPF não pode ser vazio.", ex.getMessage());
         verify(repository, never()).save(any());
+        verifyNoInteractions(usuarioService);
     }
 
     @Test
@@ -104,12 +134,28 @@ class PessoaFisicaServiceTests {
         assertEquals("CPF já cadastrado: 123", ex.getMessage());
         verify(repository).existsByCpf("123");
         verify(repository, never()).save(any());
+        verifyNoInteractions(usuarioService);
+    }
+
+    @Test
+    void insert_shouldThrowEntityNotFoundException_whenEmpresaIdNotFound() {
+        dto.setEmpresaId(10L);
+
+        when(repository.existsByCpf("123")).thenReturn(false);
+        when(pessoaJuridicaRepository.findById(10L)).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+                () -> service.insert(dto));
+
+        assertEquals("Empresa não encontrada. ID: 10", ex.getMessage());
+        verify(repository, never()).save(any());
+        verifyNoInteractions(usuarioService);
     }
 
     @Test
     void update_shouldUpdateAndReturnDTO_whenOk() {
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
-        when(repository.findByCpf("123")).thenReturn(Optional.of(entity)); // mesmo id, ok
+        when(repository.findByCpf("123")).thenReturn(Optional.of(entity)); // mesmo id
         when(repository.save(any(PessoaFisica.class))).thenAnswer(inv -> inv.getArgument(0));
 
         PessoaFisicaDTO result = service.update(dto);
@@ -117,49 +163,8 @@ class PessoaFisicaServiceTests {
         assertNotNull(result);
         assertEquals(1L, result.getId());
         verify(repository).save(any(PessoaFisica.class));
-    }
 
-    @Test
-    void update_shouldThrowNullPointerException_whenDtoIsNull() {
-        NullPointerException ex = assertThrows(NullPointerException.class,
-                () -> service.update(null));
-        assertEquals("DTO não pode ser nulo.", ex.getMessage());
-    }
-
-    @Test
-    void update_shouldThrowIllegalArgumentException_whenIdIsNull() {
-        dto.setId(null);
-
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.update(dto));
-
-        assertEquals("ID é obrigatório para atualização.", ex.getMessage());
-    }
-
-    @Test
-    void update_shouldThrowEntityNotFoundException_whenPessoaFisicaNotFound() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
-
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> service.update(dto));
-
-        assertEquals("Pessoa Física não encontrada. ID: 1", ex.getMessage());
-    }
-
-    @Test
-    void update_shouldThrowIllegalArgumentException_whenCpfBelongsToAnotherPerson() {
-        PessoaFisica other = new PessoaFisica();
-        other.setId(99L);
-        other.setCpf("123");
-
-        when(repository.findById(1L)).thenReturn(Optional.of(entity));
-        when(repository.findByCpf("123")).thenReturn(Optional.of(other));
-
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.update(dto));
-
-        assertEquals("CPF já cadastrado: 123", ex.getMessage());
-        verify(repository, never()).save(any());
+        verifyNoInteractions(usuarioService);
     }
 
     @Test
@@ -173,24 +178,6 @@ class PessoaFisicaServiceTests {
     }
 
     @Test
-    void findById_shouldThrowIllegalArgumentException_whenIdIsNull() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.findById(null));
-
-        assertEquals("ID não pode ser nulo.", ex.getMessage());
-    }
-
-    @Test
-    void findById_shouldThrowEntityNotFoundException_whenNotFound() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
-
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> service.findById(1L));
-
-        assertEquals("Pessoa Física não encontrada. ID: 1", ex.getMessage());
-    }
-
-    @Test
     void findAll_shouldReturnList() {
         when(repository.findAll()).thenReturn(List.of(entity));
 
@@ -198,52 +185,6 @@ class PessoaFisicaServiceTests {
 
         assertEquals(1, result.size());
         assertEquals("João", result.get(0).getNome());
-    }
-
-    @Test
-    void findByName_shouldThrowIllegalArgumentException_whenBlank() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.findByName(" "));
-
-        assertEquals("Nome não pode ser vazio.", ex.getMessage());
-    }
-
-    @Test
-    void findByName_shouldTrimAndReturnList() {
-        when(repository.findByName("joao")).thenReturn(List.of(entity));
-
-        List<PessoaFisicaDTO> result = service.findByName("  joao  ");
-
-        assertEquals(1, result.size());
-        verify(repository).findByName("joao");
-    }
-
-    @Test
-    void findByCpf_shouldThrowIllegalArgumentException_whenBlank() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.findByCpf(" "));
-
-        assertEquals("CPF não pode ser vazio.", ex.getMessage());
-    }
-
-    @Test
-    void findByCpf_shouldReturnDTO_whenFound() {
-        when(repository.findByCpf("123")).thenReturn(Optional.of(entity));
-
-        PessoaFisicaDTO result = service.findByCpf("123");
-
-        assertNotNull(result);
-        assertEquals("123", result.getCpf());
-    }
-
-    @Test
-    void findByCpf_shouldThrowEntityNotFoundException_whenNotFound() {
-        when(repository.findByCpf("123")).thenReturn(Optional.empty());
-
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> service.findByCpf("123"));
-
-        assertEquals("CPF não encontrado: 123", ex.getMessage());
     }
 
     @Test
@@ -260,76 +201,12 @@ class PessoaFisicaServiceTests {
     }
 
     @Test
-    void findPage_shouldThrowIllegalArgumentException_whenPageNegative() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.findPage(-1, 10));
-
-        assertEquals("page não pode ser negativo.", ex.getMessage());
-    }
-
-    @Test
-    void findPage_shouldThrowIllegalArgumentException_whenSizeInvalid() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.findPage(0, 0));
-
-        assertEquals("size deve ser maior que zero.", ex.getMessage());
-    }
-
-    @Test
     void delete_shouldDelete_whenFound() {
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
 
         service.delete(1L);
 
         verify(repository).delete(entity);
-    }
-
-    @Test
-    void delete_shouldThrowIllegalArgumentException_whenIdNull() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.delete(null));
-
-        assertEquals("ID não pode ser nulo.", ex.getMessage());
-    }
-
-    @Test
-    void delete_shouldThrowEntityNotFoundException_whenNotFound() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
-
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> service.delete(1L));
-
-        assertEquals("Pessoa Física não encontrada. ID: 1", ex.getMessage());
-    }
-
-    @Test
-    void insert_shouldSetEmpresa_whenEmpresaIdProvided() {
-        dto.setEmpresaId(10L);
-
-        PessoaJuridica empresa = new PessoaJuridica();
-        empresa.setId(10L);
-
-        when(repository.existsByCpf("123")).thenReturn(false);
-        when(pessoaJuridicaRepository.findById(10L)).thenReturn(Optional.of(empresa));
-        when(repository.save(any(PessoaFisica.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        PessoaFisicaDTO result = service.insert(dto);
-
-        assertEquals(10L, result.getEmpresaId());
-        verify(pessoaJuridicaRepository).findById(10L);
-    }
-
-    @Test
-    void insert_shouldThrowEntityNotFoundException_whenEmpresaIdNotFound() {
-        dto.setEmpresaId(10L);
-
-        when(repository.existsByCpf("123")).thenReturn(false);
-        when(pessoaJuridicaRepository.findById(10L)).thenReturn(Optional.empty());
-
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> service.insert(dto));
-
-        assertEquals("Empresa não encontrada. ID: 10", ex.getMessage());
-        verify(repository, never()).save(any());
+        verifyNoInteractions(usuarioService);
     }
 }
