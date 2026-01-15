@@ -18,10 +18,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario,Long> {
         a.id AS roleId,
         a.descricao AS authority
     FROM usuario u
-    INNER JOIN usuarios_acesso ua ON u.id = ua.usuario_id
-    INNER JOIN acesso a ON a.id = ua.acesso_id
+    LEFT JOIN usuarios_acesso ua ON u.id = ua.usuario_id
+    LEFT JOIN acesso a ON a.id = ua.acesso_id
     WHERE u.login = :email
 """)
     List<UserDetailsProjection> searchUserAndRolesByEmail(@Param("email") String email);
+
 
 }
