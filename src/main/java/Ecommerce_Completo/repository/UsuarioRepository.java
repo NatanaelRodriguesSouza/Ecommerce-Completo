@@ -2,6 +2,7 @@ package Ecommerce_Completo.repository;
 
 import Ecommerce_Completo.model.Usuario;
 import Ecommerce_Completo.projections.UserDetailsProjection;
+import Ecommerce_Completo.projections.UsuarioSenhaVencidaView;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +25,13 @@ public interface UsuarioRepository extends JpaRepository<Usuario,Long> {
     WHERE u.login = :email
 """)
     List<UserDetailsProjection> searchUserAndRolesByEmail(@Param("email") String email);
+
+    @Query(value = """
+   select u.login as login, p.nome as nome
+   from usuario u
+   join pessoa p on p.id = u.pessoa_id
+   where u.data_atual_senha <= current_date - 90
+""", nativeQuery = true)
+    List<UsuarioSenhaVencidaView> usuarioSenhaVencidaView();
+
 }
