@@ -21,10 +21,7 @@ public interface PessoaJuridicaRepository extends JpaRepository<PessoaJuridica, 
 """, nativeQuery = true)
     List<PessoaJuridica> findByName(@Param("name") String name);
 
-
-    @Query(value = "SELECT pj.* FROM pessoa_juridica pj WHERE pj.cnpj = :cnpj", nativeQuery = true)
-    Optional<PessoaJuridica> findByCnpj(@Param("cnpj") String cnpj);
-
+    Optional<PessoaJuridica> findByCnpj(String cnpj);
 
     @Query(value = "SELECT pj.* FROM pessoa_juridica pj",
             countQuery = "SELECT COUNT(*) FROM pessoa_juridica",

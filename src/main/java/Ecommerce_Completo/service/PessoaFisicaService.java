@@ -23,14 +23,19 @@ public class PessoaFisicaService {
     private final PessoaFisicaRepository repository;
     private final PessoaJuridicaRepository pessoaJuridicaRepository;
     private final UsuarioService usuarioService;
+    private final CepService cepService;
+
 
     public PessoaFisicaService(PessoaFisicaRepository repository,
                                PessoaJuridicaRepository pessoaJuridicaRepository,
-                               UsuarioService usuarioService) {
+                               UsuarioService usuarioService,
+                               CepService cepService) {
         this.repository = Objects.requireNonNull(repository, "PessoaFisicaRepository não pode ser nulo.");
         this.pessoaJuridicaRepository = Objects.requireNonNull(pessoaJuridicaRepository, "PessoaJuridicaRepository não pode ser nulo.");
         this.usuarioService = Objects.requireNonNull(usuarioService, "UsuarioService não pode ser nulo.");
+        this.cepService = Objects.requireNonNull(cepService, "CepService não pode ser nulo.");
     }
+
 
     @Transactional
     public PessoaFisicaDTO insert(PessoaFisicaDTO dto) {
@@ -180,14 +185,19 @@ public class PessoaFisicaService {
         pessoa.getEnderecos().clear();
 
         for (EnderecoDTO eDto : enderecosDto) {
+
+            var cepInfo = cepService.buscarCep(requireNotBlank(eDto.getCep(), "CEP é obrigatório."));
+
             Endereco e = new Endereco();
-            e.setRuaLogra(requireNotBlank(eDto.getRuaLogra(), "Rua/Logradouro é obrigatório."));
-            e.setCep(requireNotBlank(eDto.getCep(), "CEP é obrigatório."));
+
+            e.setCep(cepInfo.getCep());
+            e.setRuaLogra(requireNotBlank(cepInfo.getLogradouro(), "Logradouro não retornado pelo ViaCEP."));
+            e.setBairro(requireNotBlank(cepInfo.getBairro(), "Bairro não retornado pelo ViaCEP."));
+            e.setCidade(requireNotBlank(cepInfo.getLocalidade(), "Cidade não retornada pelo ViaCEP."));
+            e.setUf(requireNotBlank(cepInfo.getUf(), "UF não retornada pelo ViaCEP."));
+
             e.setNumero(requireNotBlank(eDto.getNumero(), "Número é obrigatório."));
             e.setComplemento(eDto.getComplemento());
-            e.setBairro(requireNotBlank(eDto.getBairro(), "Bairro é obrigatório."));
-            e.setUf(requireNotBlank(eDto.getUf(), "UF é obrigatório."));
-            e.setCidade(requireNotBlank(eDto.getCidade(), "Cidade é obrigatória."));
             e.setTipoEndereco(Objects.requireNonNull(eDto.getTipoEndereco(), "Tipo de endereço é obrigatório."));
 
             e.setPessoa(pessoa);
@@ -196,6 +206,7 @@ public class PessoaFisicaService {
             pessoa.getEnderecos().add(e);
         }
     }
+
 
     private PessoaFisicaDTO toDTO(PessoaFisica entity) {
         PessoaFisicaDTO dto = new PessoaFisicaDTO();
