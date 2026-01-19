@@ -91,7 +91,7 @@ public class PessoaJuridicaService {
     public List<PessoaJuridicaDTO> findByName(String name) {
         final String term = requireNotBlank(name, "Nome não pode ser vazio.").trim();
 
-        return repository.findByName(term)
+        return repository.findByNome(term)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -112,7 +112,7 @@ public class PessoaJuridicaService {
         if (page < 0) throw new IllegalArgumentException("page não pode ser negativo.");
         if (size <= 0) throw new IllegalArgumentException("size deve ser maior que zero.");
 
-        return repository.findPage(PageRequest.of(page, size))
+        return repository.findAll(PageRequest.of(page, size))
                 .map(this::toDTO);
     }
 
